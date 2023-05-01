@@ -1,3 +1,0 @@
-
-/* run specific node SM */
-

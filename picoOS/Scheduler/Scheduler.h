@@ -40,14 +40,18 @@ typedef struct Event_t{
 };
 
 uint setEventNumbers(uint eventsNo);
-uint addEvent();
+
+uint addEvents(Event_t *events);
+
 uint removeEvent();
 
-int updateEvents();
+uint updateEvents();
 
-int handleEvents();
+uint handleEvents();
 
-int updateSchedule();
+uint addTasks(Task_t *tasks);
 
-int runSchedule();
+uint updateSchedule();
+
+uint runSchedule();
 
