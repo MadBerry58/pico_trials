@@ -1,0 +1,10 @@
+{
+    "files.associations": {
+        "pwm.h": "c",
+        "encodersm.h": "c",
+        "comms.h": "c",
+        "stdlib.h": "c",
+        "limits": "c",
+        "scheduler.h": "c"
+    }
+}
