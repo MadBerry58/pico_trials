@@ -1,6 +1,9 @@
 #ifndef FLASH_CONTROL_H
 #define FLASH_CONTROL_H
 
+#include <stdio.h>
+#include "pico/stdlib.h"
+
 #define USE_DMA true
 
 uint8 generateChecksum(uint32 *source, uint16 size, uint32 *result);

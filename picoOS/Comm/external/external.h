@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include "pico/stdlib.h"
-#include "hardware/i2c.h"
+
 
 #define COMM_I2C
 #define COMM_CAN

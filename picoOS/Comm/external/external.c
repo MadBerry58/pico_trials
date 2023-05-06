@@ -1,4 +1,6 @@
 #include "Comms.h"
+#include "hardware/i2c.h"
+
 #define currentAdress 0b0001001
 
 int Comms_init()

@@ -9,13 +9,12 @@ set(CMAKE_CXX_STANDARD 17)
 pico_sdk_init()
 
 set(ExtraFiles
-    /**
-    # EncoderSM.h
-    # EncoderSM.c
-    # Comms.h
-    # Comms.c
-    # ws2812_api.h
-    # ws2812_api.c
+    EncoderSM.h
+    EncoderSM.c
+    Comms.h
+    Comms.c
+    ws2812_api.h
+    ws2812_api.c
 )
 
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/generated)

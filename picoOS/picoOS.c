@@ -1,15 +1,29 @@
 
+#include "picoOS.h"
 
+/**
+ * @brief picoOS core loop
+ * 
+ * 
+ */
 void main()
 {
+    stdio_init_all();
+    
     /* Initialize  */
-        //Check for watchdog reset
-            //Parse error
-        //Calculate Core1 checksum
-        
-        //Send Comm broadcast (Network ID + checksum)
-        //Check for response
-            //Handle errors
+    if (watchdog_caused_reboot()) 
+    {
+        printf("Rebooted by Watchdog!\n");
+        ///TODO: parse error
+    }
+    else 
+    {
+        printf("Clean boot\n");
+    }
+
+    //Send Comm broadcast (Network ID + checksum)
+    //Check for response
+        //Handle errors
 
     /* Start Core1 */
         //Refresh watchdog

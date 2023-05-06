@@ -1,6 +1,11 @@
 #ifndef ERROR_HANDLING_H
 #define ERROR_HANDLING_H
 
+#define ERROR_BUFFER_SIZE 16u
+
+#include <stdio.h>
+#include "pico/stdlib.h"
+
 typedef enum Error_Priority{
     E_CRITICAL,
     E_SEVERE,
@@ -9,12 +14,15 @@ typedef enum Error_Priority{
     E_NONE,
 };
 
+
 typedef enum Error_Source{
     E_S_OS,
     E_S_LIGHT_SWITCH,
     E_S_LIGHT_CONTROLLER,
-    E_S_MOTOR_CONTROLLER
+    E_S_WINDOW_CONTROLLER,
+    E_S_RADIATOR_CONTROLLER
 };
+
 
 typedef enum Errors_OS{
     OS_E_OK,
@@ -63,6 +71,24 @@ typedef struct Error_t{
     Error_Priority priority;
     Error_Response response;
 };
+
+
+
+/**
+ * @brief Retrieve next highest priority from error buffer
+ * 
+ * @return Error_t 
+ *//
+Error_t checkErrorBuffer();
+
+/**
+ * @brief Register an error. Critical errors can be registered to the watchdog scratch register
+ * 
+ * @param source SW component generating the error
+ * @param priority Registered error priority
+ * @param errorCode Registered error code
+ *//
+void registerError(Error_Source source, Error_Priority priority, uint32_t errorCode);
 
 Error_Response handleError(Error_t error);
 

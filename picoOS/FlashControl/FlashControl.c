@@ -1,5 +1,7 @@
 #include "FlashControl.h"
 
+///TODO: use Fast Bulk Memoryu Fill/ Copy functionality
+///TODO: add XIP support functionality (for something...)
 uint8 generateChecksum(uint32 *source, uint16 size, uint32 *result)
 {
     return 0u;
