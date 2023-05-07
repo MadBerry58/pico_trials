@@ -1,0 +1,3 @@
+add_subdirectory(MotorSM)
+add_subdirectory(PushButtonSM)
+add_subdirectory(SensorSM)

@@ -5,6 +5,7 @@
 #define MAX_TASKS  32u
 #define MAX_EVENTS 64u
 
+#include <stdlib.h>
 #include "Comm/Comm.h"
 #include "Watchdog/Watchdog.h"
 #include "ErrorHandling/ErrorHandling.h"

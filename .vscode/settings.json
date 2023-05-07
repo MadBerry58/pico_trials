@@ -6,6 +6,7 @@
         "stdlib.h": "c",
         "limits": "c",
         "scheduler.h": "c",
-        "stdio.h": "c"
+        "stdio.h": "c",
+        "picoos.h": "c"
     }
 }

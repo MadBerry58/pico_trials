@@ -2,7 +2,6 @@
 #define TIMERS_H
 
 #include <stdio.h>
-#include "pico/stdlib.h"
 
 
 #endif

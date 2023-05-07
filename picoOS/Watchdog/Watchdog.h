@@ -2,7 +2,8 @@
 #define WATCHDOG_H
 
 #include <stdio.h>
-#include "pico/stdlib.h"
+
+uint8_t startupCheck();
 
 uint8_t setOSWatchdog();
 uint8_t refreshOSWatchdog();

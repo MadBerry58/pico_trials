@@ -1,0 +1,24 @@
+add_subdirectory(Comm)
+add_subdirectory(ErrorHandling)
+add_subdirectory(FlashControl)
+add_subdirectory(Hardware)
+add_subdirectory(PinControl)
+add_subdirectory(Scheduler)
+add_subdirectory(Timers)
+add_subdirectory(Watchdog)
+
+add_library(picoOS
+    picoOS.c
+    picoOS.h
+)
+
+target_link_libraries(picoOS
+    CommLibrary
+    ErrorLibrary
+    FlashLibrary
+    HardwareLibrary
+    PinControlLibrary
+    SchedulerLibrary
+    TimerLibrary
+    WatchdogLibrary
+)
