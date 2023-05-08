@@ -4,6 +4,19 @@
 
 uint8_t activeEvents = 0u;
 
+uint8_t init_OS_scheduler()
+{
+    uint8_t retVal = 0u;
+
+    return retVal;
+}
+
+uint8_t init_Node_Scheduler(Task_t *taskList)
+{
+    uint8_t retVal = 0u;
+
+    return retVal;
+}
 
 uint8_t updateEvents(Event_t *eventList)
 {

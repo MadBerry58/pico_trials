@@ -7,6 +7,7 @@
         "limits": "c",
         "scheduler.h": "c",
         "stdio.h": "c",
-        "picoos.h": "c"
+        "picoos.h": "c",
+        "watchdog.h": "c"
     }
 }

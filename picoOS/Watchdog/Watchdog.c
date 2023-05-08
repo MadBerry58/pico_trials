@@ -4,18 +4,18 @@
 #include "Watchdog.h"
 #include "hardware/watchdog.h"
 
-uint8_t startupCheck()
+uint8_t init_Watchdog()
 {
     /* Initialize  */
     if (watchdog_caused_reboot()) 
     {
         ///OPTIMIZATION: check the reboot cause. in case of impactless soft reboot, skip writing configs to peripherals
-        printf("Rebooted by Watchdog!\n");
+        // printf("Rebooted by Watchdog!\n");
         ///TODO: parse error
     }
     else 
     {
-        printf("Clean boot\n");
+        // printf("Clean boot\n");
     }
 }
 

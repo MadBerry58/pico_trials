@@ -1,38 +1,42 @@
 
 #include "picoOS.h"
 
+uint8_t (*OS_init_Routines[])(void) = 
+{
+    init_Watchdog,
+    init_Hardware,
+    init_Comms,
+    init_PinControl,
+    init_Timers,
+    init_OS_scheduler
+};
+
+uint8_t init_routine_no = sizeof(OS_init_Routines) / sizeof(OS_init_Routines[0]);
+
+void init_OS()
+{
+    uint8_t error = 0u;
+    // stdio_init_all();
+    for(uint8_t i = 0u; i < init_routine_no; ++i)
+    {
+        if(error = OS_init_Routines[i]())
+        {
+            /* Handle init error */
+        }
+    }
+}
+
 /**
  * @brief picoOS core loop
  * 
  * 
  */
-void main()
+void run_OS()
 {
-    stdio_init_all();
+    /* start watchdog */
+    /* send start message to core 1 */
+    /* check for core1 acknowledgement */
     
-    /* Initialize  */
-    if (watchdog_caused_reboot()) 
-    {
-        ///OPTIMIZATION: check the reboot cause. in case of impactless soft reboot, skip writing configs to peripherals
-        printf("Rebooted by Watchdog!\n");
-        ///TODO: parse error
-    }
-    else 
-    {
-        printf("Clean boot\n");
-    }
-
-    //Send Comm broadcast (Network ID + checksum)
-    //Check for response
-        //Handle errors
-
-    /* Start Core1 */
-        //Refresh watchdog
-        //Start Core1
-
-    /* Start Core0 scheduler */
-        //Check comm
-        //
-
-            
+    /* enter OS loop */
+    while(true)
 }

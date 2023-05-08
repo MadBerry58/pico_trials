@@ -3,7 +3,7 @@
 
 #include <stdio.h>
 
-uint8_t startupCheck();
+uint8_t init_Watchdog();
 
 uint8_t setOSWatchdog();
 uint8_t refreshOSWatchdog();

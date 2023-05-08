@@ -6,9 +6,17 @@
 #define MAX_EVENTS 64u
 
 #include <stdlib.h>
+#include <stdio.h>
 #include "Comm/Comm.h"
-#include "Watchdog/Watchdog.h"
 #include "ErrorHandling/ErrorHandling.h"
+#include "FlashControl/FlashControl.h"
+#include "Hardware/Hardware.h"
+#include "PinControl/PinControl.h"
+#include "Scheduler/Scheduler.h"
+#include "Timers/Timers.h"
+#include "Watchdog/Watchdog.h"
 
+void init_OS();
+void run_OS();
 
 #endif

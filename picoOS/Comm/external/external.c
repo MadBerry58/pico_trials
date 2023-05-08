@@ -1,10 +1,13 @@
-#include "Comms.h"
 #include "hardware/i2c.h"
 
 #define currentAdress 0b0001001
 
 int Comms_init()
 {
+    //Send Comm broadcast (Network ID + checksum)
+    //Check for response
+        //Handle errors
+        
 #if COMM_TYPE COMM_I2C
 	i2c_init(i2c_default, 100 * 1000);
     i2c_set_slave_mode(i2c_default, true, currentAdress);

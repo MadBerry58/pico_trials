@@ -3,14 +3,16 @@
 
 #include <stdio.h>
 
-typedef enum pinRole
+typedef enum 
 {
     PIN_UNUSED,
     PIN_ADC,
     PIN_GPIO,
     PIN_PWM,
     PIN_OTHER
-};
+} pinRole;
+
+uint8_t init_PinControl();
 
 uint8_t setPinConfiguration();
 

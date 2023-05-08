@@ -1,4 +1,5 @@
 add_subdirectory(dma)
+add_subdirectory(interrupts)
 add_subdirectory(memory)
 add_subdirectory(peripherals)
 add_subdirectory(pio)
