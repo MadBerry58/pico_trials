@@ -1,10 +1,12 @@
 #ifndef RGB_SM_H
 #define RGB_SM_H
 
-uint8 rgbSM_init();
+#include <stdio.h>
 
-uint8 rgb_run();
+uint8_t rgbSM_init();
 
-uint8 rgb_setMOSFET();
+uint8_t rgb_run();
+
+uint8_t rgb_setMOSFET();
 
 #endif

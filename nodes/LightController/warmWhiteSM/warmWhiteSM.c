@@ -1,16 +1,16 @@
 #include "warmWhiteSM.h"
 
-uint8 warmWhiteSM_init()
+uint8_t warmWhiteSM_init()
 {
     return 0u;
 }
 
-uint8 warmWhite_run()
+uint8_t warmWhite_run()
 {
     return 0u;
 }
 
-uint8 warmWhite_setMOSFET()
+uint8_t warmWhite_setMOSFET()
 {
     return 0u;
 }

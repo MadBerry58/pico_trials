@@ -9,6 +9,11 @@
         "stdio.h": "c",
         "picoos.h": "c",
         "watchdog.h": "c",
-        "gpio.h": "c"
+        "gpio.h": "c",
+        "comm.h": "c",
+        "errorhandling.h": "c",
+        "timers.h": "c",
+        "multicore.h": "c",
+        "flashcontrol.h": "c"
     }
 }

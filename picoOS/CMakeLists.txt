@@ -8,11 +8,12 @@ add_subdirectory(Timers)
 add_subdirectory(Watchdog)
 
 add_library(picoOS
-    picoOS.c
     picoOS.h
+    picoOS.c
 )
 
 target_link_libraries(picoOS
+    pico_multicore
     CommLibrary
     ErrorLibrary
     FlashLibrary

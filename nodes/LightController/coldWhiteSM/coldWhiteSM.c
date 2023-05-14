@@ -1,19 +1,19 @@
 #include "coldWhiteSM.h"
 
-uint8 coldWhiteSM_init()
+uint8_t coldWhiteSM_init()
 {
     //set PWM cycle
     //set PWM range
     return 0u;
 }
 
-uint8 coldWhiteSM_run()
+uint8_t coldWhiteSM_run()
 {
     //check for PWM changes
     return 0u;
 }
 
-uint8 coldWhiteSM_setMOSFET()
+uint8_t coldWhiteSM_setMOSFET()
 {
 
     return 0u;

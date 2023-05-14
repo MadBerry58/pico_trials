@@ -1,16 +1,16 @@
 #include "rgbSM.h"
 
-uint8 rgbSM_init()
+uint8_t rgbSM_init()
 {
     return 0u;
 }
 
-uint8 rgb_run()
+uint8_t rgb_run()
 {
     return 0u;
 }
 
-uint8 rgb_setMOSFET()
+uint8_t rgb_setMOSFET()
 {
     return 0u;
 }

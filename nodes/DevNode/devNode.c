@@ -1,8 +1,19 @@
-#include "devNode.h"
+#include "devSM/devSM.h"
+#include "../../picoOS/picoOS.h"
 
 void main()
 {
-    /* initialize OS */
+    /* Initialize base OS functionality */
+    if(init_OS())
+    {
+        /* Handle initialization error */
+    }
+
+    /* Initialize node-specific functionality on core 1 */
+    if(init_devNodeSM())
+    {
+        /*  */
+    }
 
     /* initialize Node */
 

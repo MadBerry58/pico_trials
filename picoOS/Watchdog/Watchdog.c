@@ -1,6 +1,3 @@
-#ifndef WATCHDOG_H
-#define WATCHDOG_H
-
 #include "Watchdog.h"
 #include "hardware/watchdog.h"
 
@@ -60,5 +57,3 @@ uint8_t activateWatchdogDebugMode()
 
     return retVal;
 }
-
-#endif

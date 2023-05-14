@@ -16,7 +16,10 @@
 #include "Timers/Timers.h"
 #include "Watchdog/Watchdog.h"
 
-void init_OS();
-void run_OS();
+uint8_t init_OS();
+uint8_t run_OS();
+
+uint8_t init_nodeSM(uint8_t *nodeSM_initFunction());
+uint8_t run_nodeSM(uint8_t *nodeSM_runFunction());
 
 #endif
