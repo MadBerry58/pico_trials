@@ -61,5 +61,4 @@ uint8_t activateWatchdogDebugMode()
     return retVal;
 }
 
-
 #endif

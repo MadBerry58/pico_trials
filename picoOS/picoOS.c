@@ -38,5 +38,4 @@ void run_OS()
     /* check for core1 acknowledgement */
     
     /* enter OS loop */
-    while(true)
 }

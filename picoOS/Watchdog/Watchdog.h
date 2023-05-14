@@ -15,4 +15,8 @@ uint8_t registerScratchError();
 
 uint8_t activateWatchdogDebugMode();
 
+/* Flow control functionality for precise conditional structure navigation */
+uint8_t setCheckpoint();
+uint8_t triggerCheckpoint();
+
 #endif

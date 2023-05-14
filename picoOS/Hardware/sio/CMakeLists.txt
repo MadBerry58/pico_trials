@@ -1,0 +1,5 @@
+add_subdirectory(core_fifo)
+add_subdirectory(interp)
+add_subdirectory(gpio)
+add_subdirectory(spinlocks)
+add_subdirectory(divider)

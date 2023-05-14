@@ -1,0 +1,9 @@
+add_library(pio_quadrature_encoder quadrature_encoder.c)
+
+pico_generate_pio_header(pio_quadrature_encoder ${CMAKE_CURRENT_LIST_DIR}/quadrature_encoder.pio)
+
+target_link_libraries(pio_quadrature_encoder PUBLIC
+        pico_stdlib
+        pico_multicore
+        hardware_pio
+)

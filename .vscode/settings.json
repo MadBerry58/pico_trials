@@ -8,6 +8,7 @@
         "scheduler.h": "c",
         "stdio.h": "c",
         "picoos.h": "c",
-        "watchdog.h": "c"
+        "watchdog.h": "c",
+        "gpio.h": "c"
     }
 }
