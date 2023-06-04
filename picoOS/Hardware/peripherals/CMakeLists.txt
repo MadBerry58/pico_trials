@@ -3,7 +3,7 @@ add_library(Hardware_peripheralsLibrary
     peripherals.h
 )
 
-target_link_libraries(Hardware_peripheralsLibrary PUBLIC_HEADER
+target_link_libraries(Hardware_peripheralsLibrary PUBLIC
     pico_stdlib 
     hardware_i2c
     hardware_uart

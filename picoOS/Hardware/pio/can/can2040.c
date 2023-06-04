@@ -6,7 +6,7 @@
 
 #include <stdint.h> // uint32_t
 #include <string.h> // memset
-#include "RP2040.h" // hw_set_bits
+// #include "RP2040.h" // hw_set_bits
 #include "can2040.h" // can2040_setup
 #include "hardware/regs/dreq.h" // DREQ_PIO0_RX1
 #include "hardware/structs/dma.h" // dma_hw
@@ -14,6 +14,7 @@
 #include "hardware/structs/padsbank0.h" // padsbank0_hw
 #include "hardware/structs/pio.h" // pio0_hw
 #include "hardware/structs/resets.h" // RESETS_RESET_PIO0_BITS
+#include "hardware/sync.h"
 
 
 /****************************************************************
@@ -21,11 +22,13 @@
  ****************************************************************/
 
 // Helper compiler definitions
-#define barrier() __asm__ __volatile__("": : :"memory")
-#define likely(x)       __builtin_expect(!!(x), 1)
-#define unlikely(x)     __builtin_expect(!!(x), 0)
-#define ARRAY_SIZE(a) (sizeof(a) / sizeof(a[0]))
-#define DIV_ROUND_UP(n,d) (((n) + (d) - 1) / (d))
+#define barrier()  __asm__  __volatile__("": : :"memory")
+#define likely(x)           __builtin_expect(!!(x), 1)
+#define unlikely(x)         __builtin_expect(!!(x), 0)
+#define ARRAY_SIZE(a)       (sizeof(a) / sizeof(a[0]))
+#define DIV_ROUND_UP(n,d)   (((n) + (d) - 1) / (d))
+#define __DMB()             __dmb()
+
 
 // Helper functions for writing to "io" memory
 static inline void writel(void *addr, uint32_t val) {

@@ -1,6 +1,11 @@
 #ifndef SCHEDULER_H
 #define SCHEDULER_H
 
+#define MAX_EVENTS 256u
+#define MAX_TASKS  32u
+
+#include <stdio.h>
+
 typedef enum 
 {
     Ev_Prio_IMIDIATE,

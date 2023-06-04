@@ -2,7 +2,6 @@
 #define DEV_SM_H
 
 #include <stdio.h>
-#include "../../../picoOS/picoOS.h"
 
 uint8_t init_devNodeSM();
 

@@ -10,8 +10,8 @@ add_library(pio_spi_loopback
         pio_spi.h
 )
 
-pico_generate_pio_header(pio_spi_flash ${CMAKE_CURRENT_LIST_DIR}/spi.pio OUTPUT_DIR ../generated)
-pico_generate_pio_header(pio_spi_loopback ${CMAKE_CURRENT_LIST_DIR}/spi.pio OUTPUT_DIR ../generated)
+pico_generate_pio_header(pio_spi_flash    ${CMAKE_CURRENT_LIST_DIR}/spi.pio OUTPUT_DIR ${CMAKE_CURRENT_LIST_DIR})
+pico_generate_pio_header(pio_spi_loopback ${CMAKE_CURRENT_LIST_DIR}/spi.pio OUTPUT_DIR ${CMAKE_CURRENT_LIST_DIR})
 
 target_link_libraries(pio_spi_flash PUBLIC 
         pico_stdlib 

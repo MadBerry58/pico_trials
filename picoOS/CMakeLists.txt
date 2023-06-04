@@ -12,7 +12,7 @@ add_library(picoOS
     picoOS.c
 )
 
-target_link_libraries(picoOS
+target_link_libraries(picoOS PUBLIC
     pico_multicore
     CommLibrary
     ErrorLibrary

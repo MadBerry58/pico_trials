@@ -1,10 +1,7 @@
 add_subdirectory(devSM)
 
-add_executable(devNode
-    ${CMAKE_CURRENT_LIST_DIR}/devNode.c
-)
+add_executable(devNode devNode.c)
 
-target_link_libraries(devNode PUBLIC
-    picoOS
+target_link_libraries(devNode
     devSM_lib
 )

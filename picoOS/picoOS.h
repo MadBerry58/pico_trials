@@ -1,10 +1,6 @@
 #ifndef PICO_OS_H
 #define PICO_OS_H
 
-/* OS definitions */
-#define MAX_TASKS  32u
-#define MAX_EVENTS 64u
-
 #include <stdlib.h>
 #include <stdio.h>
 #include "Comm/Comm.h"
