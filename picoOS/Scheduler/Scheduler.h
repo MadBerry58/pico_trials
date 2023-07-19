@@ -1,10 +1,8 @@
 #ifndef SCHEDULER_H
 #define SCHEDULER_H
 
-#define MAX_EVENTS 256u
-#define MAX_TASKS  32u
-
 #include <stdio.h>
+#include "../picoOS.h"
 
 typedef enum 
 {
@@ -56,21 +54,13 @@ uint8_t init_OS_scheduler();
 
 uint8_t init_Node_Scheduler(Task_t *taskList);
 
-
 Event_t addEvent    (Event_t event, Event_t *eventList);
 
 uint8_t removeEvent (uint8_t eventID, Event_t *eventList);
 
-
 uint8_t updateEvents(Event_t *eventList);
 
 uint8_t handleEvents(Event_t *eventList);
-
-
-uint8_t addTask(Task_t task, Task_t *taskList);
-
-uint8_t removeTasks(uint8_t taskID, Task_t *taskList);
-
 
 uint8_t updateSchedule(Task_t *taskList);
 

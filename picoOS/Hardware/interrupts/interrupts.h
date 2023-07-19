@@ -11,6 +11,4 @@ uint8_t disable_interrupt();
 
 uint8_t set_interruptHandler();
 
-uint8_t set_nodeSpecific_InterruptHandler();
-
 #endif

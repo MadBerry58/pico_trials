@@ -18,6 +18,7 @@
         "iobank0.h": "c",
         "address_mapped.h": "c",
         "dma.h": "c",
-        "rtc.h": "c"
+        "rtc.h": "c",
+        "devsm.h": "c"
     }
 }

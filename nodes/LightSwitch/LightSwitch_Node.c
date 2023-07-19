@@ -1,5 +1,5 @@
-#include "EncoderSM.h"
-#include "ws2812_api.h"
+#include "EncoderSM/EncoderSM.h"
+// #include "ws2812_api.h"
 
 repeating_timer_t timer;
 bool TaskA(repeating_timer_t *rt);
@@ -14,7 +14,7 @@ int main()
 
 	stdio_init_all();
 	EncoderSM_init();
-	ws2812_api_init();
+	// ws2812_api_init();
 
 	// negative timeout means exact delay (rather than delay between callbacks)
 	if (!add_repeating_timer_ms(-5, TaskA, NULL, &timer)) {
@@ -28,7 +28,7 @@ int main()
 		if(response > 0)
 		{
 			ledPattern += ((response == 2) * (-1)) + ((response == 3) * (1u));
-			ws2812_api_switchPattern(ledPattern, PIXELS, LIGHT_INTENSITY);
+			// ws2812_api_switchPattern(ledPattern, PIXELS, LIGHT_INTENSITY);
 		}
 	}
 }

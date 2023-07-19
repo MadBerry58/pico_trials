@@ -5,6 +5,6 @@
 
 uint8_t init_devNodeSM();
 
-uint8_t run_devNodeSM();
+void run_devNodeSM();
 
 #endif

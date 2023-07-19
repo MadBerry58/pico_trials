@@ -3,9 +3,13 @@
 uint8_t init_Comms()
 {
     /* initialize comm hw components */
-    /* establish network connection */
     /* bind software ports */
     /* test software ports */
+}
+
+uint8_t network_connect(uint8_t nodeType,       uint8_t nodeID)
+{
+
 }
 
 uint8_t network_send(uint8_t *message, uint8_t messageLength)

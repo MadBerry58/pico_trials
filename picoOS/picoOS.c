@@ -15,10 +15,12 @@ uint8_t (*OS_init_Routines[])(void) =
 
 uint8_t init_routine_no = sizeof(OS_init_Routines) / sizeof(OS_init_Routines[0]);
 
-uint8_t init_OS()
+uint8_t init_OS(uint8_t nodeType, uint8_t nodeID)
 {
     uint8_t error = 0u;
-    // stdio_init_all();
+
+
+    /* Initialize OS modules */
     for(uint8_t i = 0u; i < init_routine_no; ++i)
     {
         if(error = OS_init_Routines[i]())
@@ -26,6 +28,9 @@ uint8_t init_OS()
             /* Handle init error */
         }
     }
+
+    /* Establish communication with the network */
+    network_connect(nodeType, nodeID);
 }
 
 /**
@@ -40,14 +45,18 @@ uint8_t run_OS()
     /* check for core1 acknowledgement */
     
     /* enter OS loop */
+    for(;;)
+    {
+        /*  */
+    }
 }
 
 uint8_t init_nodeSM(uint8_t *nodeSM_initFunction())
 {
-    
+    /* Init node SM using core 1 */
 }
 
 uint8_t run_nodeSM(uint8_t *nodeSM_runFunction())
 {
-
+    /* Run node SM */
 }

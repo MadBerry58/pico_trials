@@ -1,47 +1,18 @@
 #include "devSM/devSM.h"
 #include "../../picoOS/picoOS.h"
 
-#define nodeInitScheduleTasks 10u
-#define nodeRunScheduleTasks 10u
-
-uint8_t (*nodeInitSchedule[nodeInitScheduleTasks])() = 
-{
-    init_devNodeSM
-};
-
-uint8_t (*nodeRunSchedule[nodeRunScheduleTasks])() = 
-{
-    run_devNodeSM
-};
+#define NODE_ID 1u //Node IDs wil be given by the user/configuration sw
 
 void main()
 {
+    NodeType_e node_type = Development;
     /* Initialize base OS functionality */
-    if(init_OS())
-    {
-        /* Handle initialization error */
-    }
+    init_OS(node_type, NODE_ID);
 
     /* Initialize node-specific functionality on core 1 */
-    if(init_devNodeSM())
-    {
-        /* Initialize node software components */
-    }
+    init_devNodeSM();
 
-    /* Prime the node scheduler loop to wait for core 0 signal */
-    run_devNodeSM();
-
-    uint8_t error = 0u;
     /* Start the OS and trigger the node scheduler loop */
-    while(0u == error)
-    {
-        error = run_OS();
-        if(error)
-        {
-            /* handle OS error */
-        }
+    run_OS();
 
-    }
-
-    
 }
