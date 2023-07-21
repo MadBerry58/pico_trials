@@ -1,0 +1,4 @@
+Provides a configuration layer for components using GPIO pins.
+
+Features:
+Allows tracking of GPIO allocation throughout the OS

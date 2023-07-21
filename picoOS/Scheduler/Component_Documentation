@@ -1,0 +1,6 @@
+Runtime scheduling component, providing SW component call control
+
+Features
+Allows deterministic execution of the runtime code
+Allows for selective priority execution
+Allows for alternate state execution (sleep/low power)
