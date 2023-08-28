@@ -19,6 +19,12 @@
         "address_mapped.h": "c",
         "dma.h": "c",
         "rtc.h": "c",
-        "devsm.h": "c"
+        "devsm.h": "c",
+        "cstdio": "c",
+        "timer.h": "c",
+        "pio.h": "c",
+        "ws2812.h": "c",
+        "ws2812.pio.h": "c",
+        "can2040.h": "c"
     }
 }

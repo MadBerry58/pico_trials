@@ -54,7 +54,7 @@ uint8_t init_OS_scheduler();
 
 uint8_t init_Node_Scheduler(Task_t *taskList);
 
-Event_t addEvent    (Event_t event, Event_t *eventList);
+uint8_t addEvent    (Event_t event, Event_t *eventList);
 
 uint8_t removeEvent (uint8_t eventID, Event_t *eventList);
 

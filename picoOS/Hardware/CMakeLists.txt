@@ -10,13 +10,6 @@ add_library(HardwareLibrary
     Hardware.h
 )
 
-# target_include_directories(HardwareLibrary PUBLIC 
-#     ${CMAKE_CURRENT_SOURCE_DIR}/pio
-#     )
-
 target_link_libraries(HardwareLibrary PUBLIC 
         PioLibrary
-        # pico_stdlib 
-        # hardware_pio
-        # hardware_gpio
 )

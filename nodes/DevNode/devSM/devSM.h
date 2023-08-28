@@ -2,9 +2,8 @@
 #define DEV_SM_H
 
 #include <stdio.h>
+#include "pico/stdlib.h"
 
-uint8_t init_devNodeSM();
-
-void run_devNodeSM();
+void core_devNodeSM();
 
 #endif

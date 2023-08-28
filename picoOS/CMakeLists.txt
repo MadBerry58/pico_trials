@@ -2,7 +2,6 @@ add_subdirectory(Comm)
 add_subdirectory(ErrorHandling)
 add_subdirectory(FlashControl)
 add_subdirectory(Hardware)
-add_subdirectory(PinControl)
 add_subdirectory(Scheduler)
 add_subdirectory(Timers)
 add_subdirectory(Watchdog)
@@ -18,8 +17,9 @@ target_link_libraries(picoOS PUBLIC
     ErrorLibrary
     FlashLibrary
     HardwareLibrary
-    PinControlLibrary
     SchedulerLibrary
     TimerLibrary
     WatchdogLibrary
+
+    hardware_pwm
 )

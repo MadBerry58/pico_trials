@@ -4,105 +4,249 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 
 #include "pico/stdlib.h"
 #include "hardware/pio.h"
 #include "hardware/clocks.h"
+#include "hardware/dma.h"
 #include "ws2812.pio.h"
+#include "ws2812.h"
 
-#define IS_RGBW true
-#define NUM_PIXELS 150
-
-#ifdef PICO_DEFAULT_WS2812_PIN
-#define WS2812_PIN PICO_DEFAULT_WS2812_PIN
-#else
-// default to pin 2 if the board doesn't have a default WS2812 pin defined
-#define WS2812_PIN 2
-#endif
-
-static inline void put_pixel(uint32_t pixel_grb) {
-    pio_sm_put_blocking(pio0, 0, pixel_grb << 8u);
-}
+/* Dedicate transfer channel for RGB SM */
+static int dma_chan = -1;
 
 static inline uint32_t urgb_u32(uint8_t r, uint8_t g, uint8_t b) {
-    return
-            ((uint32_t) (r) << 8) |
+    return  ((uint32_t) (0) << 24) |
             ((uint32_t) (g) << 16) |
-            (uint32_t) (b);
+            ((uint32_t) (r) << 8 ) |
+            ((uint32_t) (b) << 0 ) ;
 }
 
-void pattern_snakes(uint len, uint t) {
-    for (uint i = 0; i < len; ++i) {
-        uint x = (i + (t >> 1)) % 64;
-        if (x < 10)
-            put_pixel(urgb_u32(0xff, 0, 0));
-        else if (x >= 15 && x < 25)
-            put_pixel(urgb_u32(0, 0xff, 0));
-        else if (x >= 30 && x < 40)
-            put_pixel(urgb_u32(0, 0, 0xff));
-        else
-            put_pixel(0);
-    }
-}
-
-void pattern_random(uint len, uint t) {
-    if (t % 8)
-        return;
-    for (int i = 0; i < len; ++i)
-        put_pixel(rand());
-}
-
-void pattern_sparkle(uint len, uint t) {
-    if (t % 8)
-        return;
-    for (int i = 0; i < len; ++i)
-        put_pixel(rand() % 16 ? 0 : 0xffffffff);
-}
-
-void pattern_greys(uint len, uint t) {
-    int max = 100; // let's not draw too much current!
-    t %= max;
-    for (int i = 0; i < len; ++i) {
-        put_pixel(t * 0x10101);
-        if (++t >= max) t = 0;
-    }
-}
-
-typedef void (*pattern)(uint len, uint t);
-const struct {
-    pattern pat;
-    const char *name;
-} pattern_table[] = {
-        {pattern_snakes,  "Snakes!"},
-        {pattern_random,  "Random data"},
-        {pattern_sparkle, "Sparkles"},
-        {pattern_greys,   "Greys"},
-};
-
-int main() {
+ws2812_sm_error init_ws2812(ws2812_sm* sm_data) 
+{
     //set_sys_clock_48();
-    stdio_init_all();
-    printf("WS2812 Smoke Test, using pin %d", WS2812_PIN);
+    ///TODO: check if PIO SM clock needs explicit 48MHz initialization
+    
+    ///TODO: add explicit error values
+    ws2812_sm_error retVal = SM_WS2812_E_OK;
+    ///TODO: bind offset for pio size compile time checking
+    uint8_t offset;
 
-    // todo get free sm
-    PIO pio = pio0;
-    int sm = 0;
-    uint offset = pio_add_program(pio, &ws2812_program);
+    if(pio_can_add_program(pio1, &ws2812_program))
+    {
+        offset = pio_add_program(pio1, &ws2812_program);
+        ///TODO: find the advantages of having control over frequency
+        ws2812_program_init(pio1, sm_data->smID, offset, sm_data->pin, 800000, false);
 
-    ws2812_program_init(pio, sm, offset, WS2812_PIN, 800000, IS_RGBW);
+        ///TODO: create template DMA configuration
+        /* Configure DMA channel */
+        dma_chan = dma_claim_unused_channel(true);
+        dma_channel_config c = dma_channel_get_default_config(dma_chan);
+        /* Transfer 32 bits of RGBW data (8 LSB are 0 for the RGB version) */
+        channel_config_set_transfer_data_size(&c, DMA_SIZE_32);
+        /* Increment read pixel values */
+        channel_config_set_read_increment(&c, true);
+        /* PIO0 will be always occupied by core0 CAN. PIO1 TX numbers from 0 to 3, depend on sm number */
+        /* Pace the data transfer for the receiving SM */
+        channel_config_set_dreq(&c, DREQ_PIO1_TX0 + sm_data->smID);
+        /* Always write to the same SM RX FIFO */
+        channel_config_set_write_increment(&c, false);
 
-    int t = 0;
-    while (1) {
-        int pat = rand() % count_of(pattern_table);
-        int dir = (rand() >> 30) & 1 ? 1 : -1;
-        puts(pattern_table[pat].name);
-        puts(dir == 1 ? "(forward)" : "(backward)");
-        for (int i = 0; i < 1000; ++i) {
-            pattern_table[pat].pat(NUM_PIXELS, t);
-            sleep_ms(10);
-            t += dir;
+        ///INFO: given a need for multiple low volume DMA operations, a dma control channel can be used to reprogram channels on the fly
+        dma_channel_configure(
+            dma_chan,
+            &c,
+            &pio1_hw->txf[sm_data->smID],  // Write address (only need to set this once)
+            NULL,               // Don't provide a read address yet
+            0,                  // As the same DMA channel will be used for multiple RGBs, allow for a different LED number
+            false               // Don't start yet
+        );
+    }
+    else
+    {
+        retVal = SM_WS2812_E_PIO_PROGRAM;
+    }
+
+    return retVal;
+}
+
+static inline void ws2812_loadPattern(int sm, uint32_t *pattern, uint16_t pixelNumber)
+{
+    ///TODO: add handling for transfer in progress cases
+    /* Dedicate DMA channels */
+    dma_channel_set_read_addr(dma_chan, pattern, false);
+    dma_channel_set_write_addr(dma_chan, &pio1_hw->txf[sm], false);
+    dma_channel_set_trans_count(dma_chan, pixelNumber, true);
+    // pio_sm_put_blocking(pio, sm, pattern[i]);
+}
+
+
+ws2812_sm_error run_ws2812 (ws2812_sm* sm_data)
+{
+    ws2812_sm_error retVal = SM_WS2812_E_OK;
+    sm_data->loopControl = true;
+
+    while(sm_data->loopControl)
+    {
+        switch (sm_data->sm_state)
+        {
+        case SM_WS2812_UNINIT:
+            /* SM not initialized. return fault */
+
+            retVal = SM_WS2812_E_UNINITIALIZED;
+            sm_data->loopControl = false;
+
+            break;
+        
+        case SM_WS2812_READY:
+            sm_data->loopControl = true;
+            sm_data->sm_state = SM_WS2812_RUNNING;
+            break;
+
+        case SM_WS2812_RUNNING:
+            /* start the state machine */            
+            if(true == sm_data->updateFlag)
+            {
+                if(SM_WS2812_R_NONE != sm_data->sm_request)
+                {
+                    switch(sm_data->sm_request)
+                    {
+                        case SM_WS2812_R_RESET:
+                            sm_data->sm_state = SM_WS2812_UNINIT;
+                            break;
+
+                        case SM_WS2812_R_STOP:
+                            sm_data->sm_state = SM_WS2812_STOPPED;
+                            break;
+                        
+                        case SM_WS2812_R_START:
+                            // sm_data->sm_state = SM_QUADRATURE_RUNNING;
+                            retVal = SM_WS2812_E_REQUEST_SEQUENCE;
+                            break;
+                        
+                        default:
+                            retVal = SM_WS2812_E_UNKNOWN_REQUEST;
+                            break;
+                    }
+                    // sm_data->loopControl = true;
+                    sm_data->sm_request = SM_WS2812_R_NONE;
+                }
+                else
+                {
+                    /* Read sm data */
+                    ws2812_loadPattern( sm_data->smID, 
+                                        sm_data->patternLocation->patternList[sm_data->patternIndex], 
+                                        sm_data->patternLocation->patternSize
+                        );
+                }
+            }
+            else
+            {
+                /* No pattern update */
+                sm_data->notificationFlag = SM_WS2812_N_NONE;
+                // sm_data->sm_state         = SM_QUADRATURE_RUNNING;
+                sm_data->loopControl = false;
+                retVal = SM_WS2812_E_OK;
+            }
+            break;
+        
+        case SM_WS2812_STOPPED:
+            /* Stop SM */
+            if(SM_WS2812_R_NONE != sm_data->sm_request)
+            {
+                switch(sm_data->sm_request)
+                {
+                    case SM_WS2812_R_RESET:
+                        sm_data->sm_state = SM_WS2812_UNINIT;
+                        sm_data->loopControl = false;
+                        break;
+
+                    case SM_WS2812_R_STOP:
+                        sm_data->notificationFlag = SM_WS2812_N_LOW_PRIO_ERROR;
+                        sm_data->sm_state = SM_WS2812_STOPPED;
+                        sm_data->loopControl = false;
+                        retVal = SM_WS2812_E_REQUEST_SEQUENCE;
+                        break;
+                    
+                    case SM_WS2812_R_START:
+                        sm_data->sm_state    = SM_WS2812_RUNNING;
+                        sm_data->loopControl = true;
+                        break;
+                    
+                    default:
+                        sm_data->sm_state = SM_WS2812_STOPPED;
+                        sm_data->loopControl = false;
+                        sm_data->notificationFlag = SM_WS2812_N_MEDIUM_PRIO_ERROR;
+                        retVal = SM_WS2812_E_UNKNOWN_REQUEST;
+                        break;
+                }
+                /* Clear out host request */
+                sm_data->sm_request = SM_WS2812_R_NONE;
+            }
+            else
+            {
+                /* SM remains stopped */
+                sm_data->sm_state = SM_WS2812_STOPPED;
+                sm_data->loopControl = false;
+                retVal = SM_WS2812_E_OK;
+            }
+            break;
+
+        case SM_WS2812_FAULT:
+            /* return error message */
+            if(SM_WS2812_R_NONE != sm_data->sm_request)
+            {
+                switch(sm_data->sm_request)
+                    {
+                        case SM_WS2812_R_RESET:
+                            sm_data->sm_state         = SM_WS2812_UNINIT;
+                            sm_data->loopControl      = false;
+                            break;
+
+                        case SM_WS2812_R_STOP:
+                            sm_data->sm_state         = SM_WS2812_FAULT;
+                            sm_data->loopControl      = false;
+                            
+                            sm_data->notificationFlag = SM_WS2812_N_LOW_PRIO_ERROR;
+                            retVal = SM_WS2812_E_REQUEST_SEQUENCE;
+                            break;
+                        
+                        case SM_WS2812_R_START:
+                            sm_data->sm_state         = SM_WS2812_RUNNING;
+                            sm_data->loopControl      = true;
+                            
+                            sm_data->notificationFlag = SM_WS2812_N_LOW_PRIO_ERROR;
+                            retVal = SM_WS2812_E_STARTED_FROM_FAULT;
+                            break;
+                        
+                        default:
+                            sm_data->sm_state    = SM_WS2812_STOPPED;
+                            sm_data->loopControl = false;
+
+                            sm_data->notificationFlag = SM_WS2812_N_MEDIUM_PRIO_ERROR;
+                            retVal = SM_WS2812_E_UNKNOWN_REQUEST;
+                            break;
+                    }
+            }
+            else
+            {
+                sm_data->sm_state    = SM_WS2812_FAULT;
+                sm_data->loopControl = false;
+
+                sm_data->notificationFlag = SM_WS2812_N_LOW_PRIO_ERROR;
+                retVal = SM_WS2812_E_FAULT_NOT_RESOLVED;            
+            }
+            break;
+
+        default:
+            /* Unknown request  */
+            sm_data->loopControl      = false;
+            sm_data->notificationFlag = SM_WS2812_N_HIGH_PRIO_ERROR;
+            sm_data->sm_state         = SM_WS2812_FAULT;
+            retVal                    = SM_WS2812_E_UNKNOWN_STATE;
+            break;
         }
     }
+
+    return retVal;
 }

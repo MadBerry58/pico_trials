@@ -17,5 +17,4 @@ target_link_libraries(PioLibrary
     pio_spi_flash
     pio_spi_loopback
     pio_ws2812
-    pio_ws2812_parallel
     pio_quadrature_encoder)

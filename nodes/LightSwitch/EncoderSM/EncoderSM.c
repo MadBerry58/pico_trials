@@ -63,7 +63,7 @@ volatile uint8_t    ledLevel            = 0u;
 volatile uint8_t    ledLevelTemp        = 0u;
 volatile uint16_t   ledOutput           = 0u;
 
-int EncoderSM_init(void)
+uint8_t EncoderSM_init(void)
 {
     uint8_t retVal = 0u;
 
@@ -80,8 +80,8 @@ int EncoderSM_init(void)
     gpio_set_dir(C_Pin,     GPIO_IN);
     #ifdef PIO_QUADRATURE_ENCODER
     /* Create configuration variable chain */
-    uint offset = pio_add_program(quadrature_pio, &quadrature_encoder_program);
-    quadrature_encoder_program_init(quadrature_pio, quadrature_sm, offset, A_Pin, 0);
+    // pio_add_program(quadrature_pio, &quadrature_encoder_program);
+    // quadrature_encoder_program_init(quadrature_pio, quadrature_sm, A_Pin, 0);
     #else
     /* Create bitmasks used for coded gpio encoder */
 
@@ -96,7 +96,7 @@ void checkEncoder(void)
 {
 
     #ifdef PIO_QUADRATURE_ENCODER
-    new_value = quadrature_encoder_get_count(quadrature_pio, quadrature_sm);
+    // new_value = quadrature_encoder_get_count(quadrature_pio, quadrature_sm);
     delta = new_value - old_value;
     old_value = new_value;
     #else
@@ -129,9 +129,11 @@ void checkEncoder(void)
 
 }
 
-int EncoderSM_run(uint *response)
+uint8_t EncoderSM_run(uint *response)
 {
+    uint8_t retVal = 0;
     checkEncoder();
     ledOutput = ledLevel * ledLevel;
     pwm_set_gpio_level(PICO_DEFAULT_LED_PIN, ledOutput);
+    return retVal;
 }

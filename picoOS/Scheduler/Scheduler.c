@@ -44,9 +44,9 @@ uint8_t runSchedule(Task_t *taskList)
     return retVal;
 }
 
-Event_t addEvent    (Event_t event, Event_t *eventList)
+uint8_t addEvent    (Event_t event, Event_t *eventList)
 {
-    Event_t retVal;
+    uint8_t retVal = 0;
 
     return retVal;
 }

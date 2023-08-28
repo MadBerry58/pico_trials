@@ -8,8 +8,10 @@
 #include "pico/stdlib.h"
 #include "hardware/pio.h"
 #include "hardware/timer.h"
-
+#include "quadrature_encoder.h"
 #include "quadrature_encoder.pio.h"
+
+#define ENCODER_STEP_RATE   0 /* 0 - unlimited rate */
 
 //
 // ---- quadrature encoder interface example
@@ -32,30 +34,217 @@
 // encoder count updated and because of that it supports very high step rates.
 //
 
-int main() {
-    int new_value, delta, old_value = 0;
+/* Helper functions */
 
-    // Base pin to connect the A phase of the encoder.
-    // The B phase must be connected to the next pin
-    const uint PIN_AB = 10;
 
-    stdio_init_all();
+/* Exported functions */
 
-    PIO pio = pio0;
-    const uint sm = 0;
+/**
+ * @brief Initialize SM functionality
+ * 
+ * @param sm_data State Machine internal data structure
+ * @return quadrature_encoder_sm_error 
+ */
+quadrature_encoder_sm_error init_quadrature_encoder_sm(quadrature_encoder_sm *sm_data)
+{
+    quadrature_encoder_sm_error retVal;
 
-    uint offset = pio_add_program(pio, &quadrature_encoder_program);
-    quadrature_encoder_program_init(pio, sm, offset, PIN_AB, 0);
+    /* SM program requires to be first in the PIO memory for logic arithmetic */
+    if(pio_can_add_program_at_offset(pio1, &quadrature_encoder_program, 0u))
+    {
+        pio_add_program_at_offset(pio1, &quadrature_encoder_program, 0u);
+        quadrature_encoder_program_init(pio1, sm_data->smID, sm_data->abPin, ENCODER_STEP_RATE);
 
-    while (1) {
-        // note: thanks to two's complement arithmetic delta will always
-        // be correct even when new_value wraps around MAXINT / MININT
-        new_value = quadrature_encoder_get_count(pio, sm);
-        delta = new_value - old_value;
-        old_value = new_value;
+        gpio_init       (sm_data->buttonPin);
+        gpio_set_dir    (sm_data->buttonPin, GPIO_IN);
+        gpio_set_inover (sm_data->buttonPin, GPIO_OVERRIDE_INVERT);
+        gpio_pull_up    (sm_data->buttonPin);
 
-        printf("position %8d, delta %6d\n", new_value, delta);
-        sleep_ms(100);
+        sm_data->sm_state = SM_QUADRATURE_READY;
     }
+    else
+    {
+        retVal = SM_QUADRATURE_E_PIO_PROGRAM;
+    }
+
+
+    return retVal;
 }
 
+/**
+ * @brief Run the quadrature encoder state machine 
+ * 
+ * @param sm_data State Machine internal data structure
+ * @return quadrature_encoder_sm_error 
+ */
+quadrature_encoder_sm_error run_quadrature_encoder_sm (quadrature_encoder_sm *sm_data)
+{
+    quadrature_encoder_sm_error retVal = SM_QUADRATURE_E_OK;
+    sm_data->loopControl = true;
+
+    while(sm_data->loopControl)
+    {
+        switch (sm_data->sm_state)
+        {
+        case SM_QUADRATURE_UNINIT:
+            /* SM not initialized. return fault */
+
+            retVal = SM_QUADRATURE_E_UNINITIALIZED;
+            sm_data->loopControl = false;
+
+            break;
+        
+        case SM_QUADRATURE_READY:
+            sm_data->loopControl = true;
+            sm_data->sm_state = SM_QUADRATURE_RUNNING;
+            break;
+
+        case SM_QUADRATURE_RUNNING:
+            /* start the state machine */            
+            if(SM_QUADRATURE_R_NONE != sm_data->sm_request)
+            {
+                switch(sm_data->sm_request)
+                {
+                    case SM_QUADRATURE_R_RESET:
+                        sm_data->sm_state = SM_QUADRATURE_UNINIT;
+                        break;
+
+                    case SM_QUADRATURE_R_STOP:
+                        sm_data->sm_state = SM_QUADRATURE_STOPPED;
+                        break;
+                    
+                    case SM_QUADRATURE_R_START:
+                        // sm_data->sm_state = SM_QUADRATURE_RUNNING;
+                        retVal = SM_QUADRATURE_E_REQUEST_SEQUENCE;
+                        break;
+                    
+                    default:
+                        retVal = SM_QUADRATURE_E_UNKNOWN_REQUEST;
+                        break;
+                }
+                // sm_data->loopControl = true;
+                sm_data->sm_request = SM_QUADRATURE_R_NONE;
+            }
+            else             
+            {
+                /* Read sm data. Half rotation changes current rotation by 1, thus 2 is used as a debounce */
+                *(sm_data->rotationOutput) = (quadrature_encoder_get_count(pio1, sm_data->smID) / 2u);
+                *(sm_data->buttonOutput)   = (gpio_get(sm_data->buttonPin));
+                
+                if(
+                    (sm_data->prevRotation != (*(sm_data->rotationOutput))) ||
+                    (sm_data->prevButton   != (*(sm_data->buttonOutput  )))
+                )
+                {
+                    sm_data->notificationFlag = SM_QUADRATURE_N_UPDATE;
+                }
+                else
+                {
+                    sm_data->notificationFlag = SM_QUADRATURE_N_NONE;
+                }
+
+                // sm_data->sm_state         = SM_QUADRATURE_RUNNING;
+                sm_data->loopControl = false;
+                retVal = SM_QUADRATURE_E_OK;
+            }
+            break;
+        
+        case SM_QUADRATURE_STOPPED:
+            /* Stop SM */
+            if(SM_QUADRATURE_R_NONE != sm_data->sm_request)
+            {
+                switch(sm_data->sm_request)
+                {
+                    case SM_QUADRATURE_R_RESET:
+                        sm_data->sm_state = SM_QUADRATURE_UNINIT;
+                        sm_data->loopControl = false;
+                        break;
+
+                    case SM_QUADRATURE_R_STOP:
+                        sm_data->notificationFlag = SM_QUADRATURE_N_LOW_PRIO_ERROR;
+                        sm_data->sm_state = SM_QUADRATURE_STOPPED;
+                        sm_data->loopControl = false;
+                        retVal = SM_QUADRATURE_E_REQUEST_SEQUENCE;
+                        break;
+                    
+                    case SM_QUADRATURE_R_START:
+                        sm_data->sm_state    = SM_QUADRATURE_RUNNING;
+                        sm_data->loopControl = true;
+                        break;
+                    
+                    default:
+                        sm_data->sm_state = SM_QUADRATURE_STOPPED;
+                        sm_data->loopControl = false;
+                        sm_data->notificationFlag = SM_QUADRATURE_N_MEDIUM_PRIO_ERROR;
+                        retVal = SM_QUADRATURE_E_UNKNOWN_REQUEST;
+                        break;
+                }
+                /* Clear out host request */
+                sm_data->sm_request = SM_QUADRATURE_R_NONE;
+            }
+            else
+            {
+                // sm_data->sm_state = SM_QUADRATURE_STOPPED;
+                sm_data->loopControl = false;
+                retVal = SM_QUADRATURE_E_OK;
+            }
+            break;
+
+        case SM_QUADRATURE_FAULT:
+            /* return error message */
+            if(SM_QUADRATURE_R_NONE != sm_data->sm_request)
+            {
+                switch(sm_data->sm_request)
+                    {
+                        case SM_QUADRATURE_R_RESET:
+                            sm_data->sm_state         = SM_QUADRATURE_UNINIT;
+                            sm_data->loopControl      = false;
+                            break;
+
+                        case SM_QUADRATURE_R_STOP:
+                            sm_data->sm_state         = SM_QUADRATURE_FAULT;
+                            sm_data->loopControl      = false;
+                            
+                            sm_data->notificationFlag = SM_QUADRATURE_N_LOW_PRIO_ERROR;
+                            retVal = SM_QUADRATURE_E_REQUEST_SEQUENCE;
+                            break;
+                        
+                        case SM_QUADRATURE_R_START:
+                            sm_data->sm_state         = SM_QUADRATURE_RUNNING;
+                            sm_data->loopControl      = true;
+                            
+                            sm_data->notificationFlag = SM_QUADRATURE_N_LOW_PRIO_ERROR;
+                            retVal = SM_QUADRATURE_E_STARTED_FROM_FAULT;
+                            break;
+                        
+                        default:
+                            sm_data->sm_state    = SM_QUADRATURE_STOPPED;
+                            sm_data->loopControl = false;
+
+                            sm_data->notificationFlag = SM_QUADRATURE_N_MEDIUM_PRIO_ERROR;
+                            retVal = SM_QUADRATURE_E_UNKNOWN_REQUEST;
+                            break;
+                    }
+            }
+            else
+            {
+                // sm_data->sm_state    = SM_QUADRATURE_FAULT;
+                sm_data->loopControl = false;
+
+                sm_data->notificationFlag = SM_QUADRATURE_N_LOW_PRIO_ERROR;
+                retVal = SM_QUADRATURE_E_FAULT_NOT_RESOLVED;            
+            }
+            break;
+
+        default:
+            /* Unknown request  */
+            sm_data->loopControl      = false;
+            sm_data->notificationFlag = SM_QUADRATURE_N_HIGH_PRIO_ERROR;
+            sm_data->sm_state         = SM_QUADRATURE_FAULT;
+            retVal                    = SM_QUADRATURE_E_UNKNOWN_STATE;
+            break;
+        }
+    }
+
+    return retVal;
+}

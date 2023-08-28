@@ -3,6 +3,7 @@
 
 uint8_t init_Watchdog()
 {
+    uint8_t retVal = 0u;
     /* Initialize  */
     if (watchdog_caused_reboot()) 
     {
@@ -14,6 +15,7 @@ uint8_t init_Watchdog()
     {
         // printf("Clean boot\n");
     }
+    return retVal;
 }
 
 uint8_t setOSWatchdog()
