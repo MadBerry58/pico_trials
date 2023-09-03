@@ -9,12 +9,16 @@ add_library(PioLibrary
     pio.h
     pio_sm_costs.h
 )
-target_link_libraries(PioLibrary
+target_link_libraries(PioLibrary PUBLIC
     pio_i2c
-    pio_can
     pio_uart_rx
     pio_uart_tx
     pio_spi_flash
     pio_spi_loopback
     pio_ws2812
-    pio_quadrature_encoder)
+    pio_quadrature_encoder
+)
+
+target_link_libraries(PioLibrary PUBLIC
+    optimized pio_can
+)

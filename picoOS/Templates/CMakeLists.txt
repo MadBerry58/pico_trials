@@ -1,11 +1,10 @@
-add_subdirectory(QuadratureEncoderSM)
+add_subdirectory(mosfetControl)
 
-add_library(Templates
+add_library(TemplateLibrary
     Templates.h
     Templates.c
 )
 
-target_link_libraries(Templates PUBLIC
-    pico_multicore
-    QuadratureEncoderSMLibrary
+target_link_libraries(TemplateLibrary PUBLIC
+    MosfetControlLibrary
 )

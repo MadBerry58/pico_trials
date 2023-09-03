@@ -5,6 +5,7 @@ add_subdirectory(Hardware)
 add_subdirectory(Scheduler)
 add_subdirectory(Timers)
 add_subdirectory(Watchdog)
+add_subdirectory(Templates)
 
 add_library(picoOS
     picoOS.h
@@ -20,6 +21,5 @@ target_link_libraries(picoOS PUBLIC
     SchedulerLibrary
     TimerLibrary
     WatchdogLibrary
-
-    hardware_pwm
+    TemplateLibrary
 )

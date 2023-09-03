@@ -25,6 +25,10 @@
         "pio.h": "c",
         "ws2812.h": "c",
         "ws2812.pio.h": "c",
-        "can2040.h": "c"
+        "can2040.h": "c",
+        "mosfetcontrol.h": "c",
+        "clocks.h": "c",
+        "adresses.h": "c",
+        "rp2040.h": "c"
     }
 }

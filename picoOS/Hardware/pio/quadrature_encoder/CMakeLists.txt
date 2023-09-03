@@ -7,6 +7,5 @@ pico_generate_pio_header(pio_quadrature_encoder ${CMAKE_CURRENT_LIST_DIR}/quadra
 
 target_link_libraries(pio_quadrature_encoder PUBLIC
         pico_stdlib
-        pico_multicore
         hardware_pio
 )

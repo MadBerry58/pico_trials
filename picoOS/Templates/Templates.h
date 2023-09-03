@@ -1,6 +1,6 @@
 #ifndef TEMPLATES_H
 #define TEMPLATES_H
 
-#include "QuadratureEncoderSM/QuadratureEncoderSM.h"
+#include "mosfetControl/mosfetControl.h"
 
 #endif
