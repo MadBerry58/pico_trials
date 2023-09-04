@@ -30,11 +30,11 @@ typedef uint32_t canid_t;
 #define CAN_MAX_DLC 8
 #define CAN_MAX_DLEN 8
 
-typedef struct can_frame {
+typedef struct {
     canid_t can_id;  /* 32 bit CAN_ID + EFF/RTR/ERR flags */
     uint8_t can_dlc; /* frame payload length in byte (0 .. CAN_MAX_DLEN) */
     uint8_t data[CAN_MAX_DLEN];
-};
+} can_frame;
 
 #define CANCTRL_REQOP  0xE0
 #define CANCTRL_ABAT   0x10
@@ -51,13 +51,13 @@ typedef struct can_frame {
 #define DLC_MASK       0x0F
 #define RTR_MASK       0x40
 
-typedef enum CAN_CLOCK {
+typedef enum  {
     MCP_20MHZ,
     MCP_16MHZ,
     MCP_8MHZ
-};
+} CAN_CLOCK;
 
-typedef enum CAN_SPEED {
+typedef enum  {
     CAN_5KBPS,
     CAN_10KBPS,
     CAN_20KBPS,
@@ -74,17 +74,17 @@ typedef enum CAN_SPEED {
     CAN_250KBPS,
     CAN_500KBPS,
     CAN_1000KBPS
-};
+} CAN_SPEED;
 
-typedef enum CAN_CLKOUT {
+typedef enum  {
     CLKOUT_DISABLE  = -1,
     CLKOUT_DIV1     = 0x0,
     CLKOUT_DIV2     = 0x1,
     CLKOUT_DIV4     = 0x2,
     CLKOUT_DIV8     = 0x3,
-};
+} CAN_CLKOUT;
 
-typedef enum CANINTF {
+typedef enum  {
     CANINTF_RX0IF = 0x01,
     CANINTF_RX1IF = 0x02,
     CANINTF_TX0IF = 0x04,
@@ -93,9 +93,9 @@ typedef enum CANINTF {
     CANINTF_ERRIF = 0x20,
     CANINTF_WAKIF = 0x40,
     CANINTF_MERRF = 0x80
-};
+} CANINTF;
 
-typedef enum EFLG {
+typedef enum  {
     EFLG_RX1OVR = (1<<7),
     EFLG_RX0OVR = (1<<6),
     EFLG_TXBO   = (1<<5),
@@ -104,15 +104,15 @@ typedef enum EFLG {
     EFLG_TXWAR  = (1<<2),
     EFLG_RXWAR  = (1<<1),
     EFLG_EWARN  = (1<<0)
-};
+} EFLG;
 
-typedef enum CANCTRL_REQOP_MODE{
+typedef enum {
     CANCTRL_REQOP_NORMAL     = 0x00,
     CANCTRL_REQOP_SLEEP      = 0x20,
     CANCTRL_REQOP_LOOPBACK   = 0x40,
     CANCTRL_REQOP_LISTENONLY = 0x60,
     CANCTRL_REQOP_CONFIG     = 0x80,
     CANCTRL_REQOP_POWERUP    = 0xE0
-};
+} CANCTRL_REQOP_MODE;
 
 #endif /* CAN_H_ */

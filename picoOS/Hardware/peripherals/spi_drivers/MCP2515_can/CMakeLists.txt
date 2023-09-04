@@ -1,7 +1,8 @@
 add_library(spi_can
+        icDefinitions.h
         canDefinitions.h
-        MC2515_can.c
-        MC2515_can.h
+        MCP2515_can.c
+        MCP2515_can.h
 )
 
 target_link_libraries(spi_can PUBLIC

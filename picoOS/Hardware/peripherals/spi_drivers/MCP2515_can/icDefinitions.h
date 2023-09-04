@@ -1,5 +1,5 @@
-#ifndef MC2515_IC_DEFS_H
-#define MC2515_IC_DEFS_H
+#ifndef MCP2515_IC_DEFS_H
+#define MCP2515_IC_DEFS_H
 
 /* Speed 8M */
 #define MCP_8MHz_1000kBPS_CFG1  (0x00)
@@ -178,7 +178,7 @@
 #define MCP_DLC                 (0x04)
 #define MCP_DATA                (0x05)
 
-typedef enum MC2515_instr {
+typedef enum  {
     INSTRUCTION_WRITE       = 0x02,
     INSTRUCTION_READ        = 0x03,
     INSTRUCTION_BITMOD      = 0x05,
@@ -194,9 +194,9 @@ typedef enum MC2515_instr {
     INSTRUCTION_READ_STATUS = 0xA0,
     INSTRUCTION_RX_STATUS   = 0xB0,
     INSTRUCTION_RESET       = 0xC0
-};
+} MCP2515_instr;
 
-typedef enum MC2515_reg {
+typedef enum  {
     MCP_RXF0SIDH            = 0x00,
     MCP_RXF0SIDL            = 0x01,
     MCP_RXF0EID8            = 0x02,
@@ -274,35 +274,45 @@ typedef enum MC2515_reg {
     MCP_RXB1EID0            = 0x74,
     MCP_RXB1DLC             = 0x75,
     MCP_RXB1DATA            = 0x76
-};
+} MCP2515_reg ;
 
-typedef enum RXF {
+typedef enum  {
     RXF0                    = 0,
     RXF1                    = 1,
     RXF2                    = 2,
     RXF3                    = 3,
     RXF4                    = 4,
     RXF5                    = 5
-};
+} RXF;
 
-typedef enum RXBn {
+typedef enum  {
     RXB0                    = 0,
     RXB1                    = 1
-};
+} RXBn;
 
-typedef enum TXBn {
+typedef enum  {
     TXB0                    = 0,
     TXB1                    = 1,
     TXB2                    = 2
-};
+} TXBn;
 
-typedef enum TXBnCTRL {
+typedef enum  {
     TXB_ABTF                = 0x40,
     TXB_MLOA                = 0x20,
     TXB_TXERR               = 0x10,
     TXB_TXREQ               = 0x08,
     TXB_TXIE                = 0x04,
     TXB_TXP                 = 0x03
-};
+} TXBnCTRL;
+
+typedef enum  {
+    MASK0,
+    MASK1
+} MASK;
+
+typedef enum {
+    STAT_RX0IF = (1<<0),
+    STAT_RX1IF = (1<<1)
+} STAT;
 
 #endif
