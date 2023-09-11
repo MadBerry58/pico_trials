@@ -4,14 +4,14 @@
 #include <stdint.h>
 
 /* special address description flags for the CAN_ID */
-#define CAN_EFF_FLAG 0x80000000UL /* EFF/SFF is set in the MSB */
-#define CAN_RTR_FLAG 0x40000000UL /* remote transmission request */
-#define CAN_ERR_FLAG 0x20000000UL /* error message frame */
+#define CAN_EFF_FLAG 0b10000000000000000000000000000000UL /* EFF/SFF is set in the MSB */
+#define CAN_RTR_FLAG 0b01000000000000000000000000000000UL /* remote transmission request */
+#define CAN_ERR_FLAG 0b00100000000000000000000000000000UL /* error message frame */
 
 /* valid bits in CAN ID for frame formats */
-#define CAN_SFF_MASK 0x000007FFUL /* standard frame format (SFF) */
-#define CAN_EFF_MASK 0x1FFFFFFFUL /* extended frame format (EFF) */
-#define CAN_ERR_MASK 0x1FFFFFFFUL /* omit EFF, RTR, ERR flags */
+#define CAN_SFF_MASK 0b00000000000000000000011111111111UL /* standard frame format (SFF) */
+#define CAN_EFF_MASK 0b00011111111111111111111111111111UL /* extended frame format (EFF) */
+#define CAN_ERR_MASK 0b00011111111111111111111111111111UL /* omit EFF, RTR, ERR flags */
 
 /*
  * Controller Area Network Identifier structure
@@ -23,12 +23,12 @@
  */
 typedef uint32_t canid_t;
 
-#define CAN_SFF_ID_BITS     11
-#define CAN_EFF_ID_BITS     29
+#define CAN_SFF_ID_BITS 0b00000000000000000000000000001011UL
+#define CAN_EFF_ID_BITS 0b00000000000000000000000000011101UL
 
 /* CAN payload length and DLC definitions according to ISO 11898-1 */
-#define CAN_MAX_DLC 8
-#define CAN_MAX_DLEN 8
+#define CAN_MAX_DLC     8U
+#define CAN_MAX_DLEN    8U
 
 typedef struct {
     canid_t can_id;  /* 32 bit CAN_ID + EFF/RTR/ERR flags */
@@ -36,20 +36,20 @@ typedef struct {
     uint8_t data[CAN_MAX_DLEN];
 } can_frame;
 
-#define CANCTRL_REQOP  0xE0
-#define CANCTRL_ABAT   0x10
-#define CANCTRL_OSM    0x08
-#define CANCTRL_CLKEN  0x04
-#define CANCTRL_CLKPRE 0x03
+#define CANCTRL_REQOP   0xE0
+#define CANCTRL_ABAT    0x10
+#define CANCTRL_OSM     0x08
+#define CANCTRL_CLKEN   0x04
+#define CANCTRL_CLKPRE  0x03
+    
+#define CANSTAT_OPMOD   0xE0
+#define CANSTAT_ICOD    0x0E
+    
+#define CNF3_SOF        0x80
 
-#define CANSTAT_OPMOD  0xE0
-#define CANSTAT_ICOD   0x0E
-
-#define CNF3_SOF       0x80
-
-#define TXB_EXIDE_MASK 0x08
-#define DLC_MASK       0x0F
-#define RTR_MASK       0x40
+#define TXB_EXIDE_MASK  0b00000000000000000000000000001000UL
+#define DLC_MASK        0b00000000000000000000000000001111UL
+#define RTR_MASK        0b00000000000000000000000001001111UL
 
 typedef enum  {
     MCP_20MHZ,

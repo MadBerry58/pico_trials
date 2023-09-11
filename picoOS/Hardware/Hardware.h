@@ -9,6 +9,17 @@
 #include "peripherals/peripherals.h"
 #include "pio/pio.h"
 
+///TODO: add hardware configuration template
+/* 
+typedef struct {
+    dmaConfig;
+    peripheralConfig;
+    pioConfig;
+    interruptConfig;
+    sioConfig; 
+} Hardware_config;
+ */
+
 uint8_t init_Hardware();
 
 uint8_t run_Hardware();

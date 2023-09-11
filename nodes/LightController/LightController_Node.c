@@ -1,30 +1,24 @@
-#include "../../picoOS/picoOS.h"
-#include "coldWhiteSM/coldWhiteSM.h"
-#include "warmWhiteSM/warmWhiteSM.h"
-#include "rgbSM/rgbSM.h"
+
+#include "core_lightController/lightController.h"
 
 void main()
 {
-    ///TODO: automate initialization/run using scheduler functionality
-    /* Initialize OS */
-    if(init_OS())
-    {
-        /* handle OS init errors */
-    }
+    uint32_t nodeError = 0u;
+    NodeType_e node_type = Development;
+    /* Initialize base OS functionality */
+    stdio_init_all();
+    init_OS(node_type, NODE_ID);
 
-    /* Initialize local State machines */
-    if(coldWhiteSM_init())
+    /* Reset previous core code */
+    multicore_reset_core1();
+    /* Initialize node-specific functionality on core 1 */
+    multicore_launch_core1(core_lightSwitch);
+
+    /* Start the OS and trigger the node scheduler loop */
+    // run_OS();
+    while(1)
     {
-        /* Handle SM initialization errors */
+
     }
-    else
-    if(warmWhiteSM_init())
-    {
-        /* Handle SM initialization errors */
-    }
-    else
-    if(rgbSM_init())
-    {
-        /* Handle SM initialization errors */
-    }
+    printf("End of program: %llu", nodeError);
 }

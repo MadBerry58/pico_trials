@@ -297,12 +297,12 @@ typedef enum  {
 } TXBn;
 
 typedef enum  {
-    TXB_ABTF                = 0x40,
-    TXB_MLOA                = 0x20,
-    TXB_TXERR               = 0x10,
-    TXB_TXREQ               = 0x08,
-    TXB_TXIE                = 0x04,
-    TXB_TXP                 = 0x03
+    TXB_ABTF                = 0x40, //ABort Transmit Frame
+    TXB_MLOA                = 0x20, //Message LOst Arbitration
+    TXB_TXERR               = 0x10, //Transmission Error
+    TXB_TXREQ               = 0x08, //Transmission Request
+    TXB_TXIE                = 0x04, //
+    TXB_TXP                 = 0x03  //Transmit Priority
 } TXBnCTRL;
 
 typedef enum  {

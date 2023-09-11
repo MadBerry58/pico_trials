@@ -10,6 +10,14 @@ typedef struct
     uint8_t  messagePriority;
 } core_FIFO_message;
 
+/* 
+typedef struct
+{
+    boolean coreID;
+    
+}fifoConfig;
+ */
+
 uint8_t sendMessage(core_FIFO_message *messageBuffer, uint8_t messageNumber);
 
 uint8_t receiveMessage(core_FIFO_message *messageBuffer);

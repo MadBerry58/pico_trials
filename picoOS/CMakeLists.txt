@@ -1,10 +1,7 @@
 add_subdirectory(Comm)
-add_subdirectory(ErrorHandling)
 add_subdirectory(FlashControl)
 add_subdirectory(Hardware)
 add_subdirectory(Scheduler)
-add_subdirectory(Timers)
-add_subdirectory(Watchdog)
 add_subdirectory(Templates)
 
 add_library(picoOS

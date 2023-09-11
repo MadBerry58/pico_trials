@@ -241,12 +241,12 @@ MCP2515_Error MCP2515_setNormalMode(MCP2515_instance *instance)
 
 bool            checkReceive     (MCP2515_instance *instance)
 {
-    return (0 < (STAT_RXIF_MASK & (getStatus(instance))));
+    return (0u < (STAT_RXIF_MASK & (getStatus(instance))));
 }
 
 bool            checkError       (MCP2515_instance *instance)
 {
-    return (0 < (EFLG_ERRORMASK & (getErrorFlags(instance))));
+    return (0u < (EFLG_ERRORMASK & (getErrorFlags(instance))));
 }
 
 uint8_t         getErrorFlags    (MCP2515_instance *instance)
@@ -320,24 +320,42 @@ uint8_t         errorCountTX     (MCP2515_instance *instance)
 
 void prepareId(uint8_t *buffer, const bool ext, const uint32_t id)
 {
+    ///TODO: optimize id preparation
+    /* copy the first 16 bits of the id */
     uint16_t canid = (uint16_t)(id & 0x0FFFF);
 
     if (ext) 
-    {
-        buffer[MCP_EID0]  = (uint8_t )( canid & 0xFF        );
-        buffer[MCP_EID8]  = (uint8_t )( canid >> 8          );
-        canid             = (uint16_t)( id    >> 16         );
-        buffer[MCP_SIDL]  = (uint8_t )( canid & 0x03        );
-        buffer[MCP_SIDL] += (uint8_t )((canid & 0x1C) << 3  );
-        buffer[MCP_SIDL] |= (uint8_t )( TXB_EXIDE_MASK      );
-        buffer[MCP_SIDH]  = (uint8_t )( canid >> 5          );
+    {/* Extended ID - fill Extended ID segment */
+        /* bind first 16 bits of the id */
+        buffer[MCP_EID0]  = (uint8_t )( canid &  0b11111111u        );
+        buffer[MCP_EID8]  = (uint8_t )( canid >> 8u                 );
+
+        /* copy the next 16 bits of the id */
+        canid             = (uint16_t)( id    >> 16u                );
+
+        /* write SID low segment */
+         /* bind the next 2 bits of the id */
+        buffer[MCP_SIDL]  = (uint8_t )( canid &  0b00000011u        );
+         /* copy next 3 bits and copy them leaving a 3 bit gap */
+        buffer[MCP_SIDL] += (uint8_t )((canid &  0b00011100u) << 3  );
+         /* add EXIDE bit                        0b11100000u       */
+        buffer[MCP_SIDL] |= (uint8_t )(          0b00001000u        );
+                                               /*0b11101011u*/
+        /* write SID high segment */
+         /* copy the remaining id bits */
+        buffer[MCP_SIDH]  = (uint8_t )( canid >> 5u                 );
     } 
     else 
     {
-        buffer[MCP_SIDH]  = (uint8_t )( canid >> 3          );
-        buffer[MCP_SIDL]  = (uint8_t )((canid & 0x07 ) << 5 );
-        buffer[MCP_EID0]  = (uint8_t )( 0                   );
-        buffer[MCP_EID8]  = (uint8_t )( 0                   );
+        /* write most significant 13 bits to SID high segment */
+        buffer[MCP_SIDH]  = (uint8_t )( canid                 >> 3u );
+        
+        /* write the remaining 3 bits to SID low segment */
+        buffer[MCP_SIDL]  = (uint8_t )((canid &  0b00000111u) << 5u );
+
+        /* clear Extended ID segment */
+        buffer[MCP_EID0]  = (uint8_t )( 0                           );
+        buffer[MCP_EID8]  = (uint8_t )( 0                           );
     }
 }
 
@@ -785,9 +803,59 @@ MCP2515_Error MCP2515_sendMessage_Buff(MCP2515_instance *instance, const TXBn tx
 
         prepareId(data, ext, id);
 
+        /* if the frame is a request, bind RTR mask, otherwise bind the length of the data */
         data[MCP_DLC] = rtr ? (frame->can_dlc | RTR_MASK) : frame->can_dlc;
 
+        /* copy the frame data */
         memcpy(&data[MCP_DATA], frame->data, frame->can_dlc);
+
+        /* write the 5 id bytes + can_dlc data bytes to SIDH register */
+        setRegisters(instance, txbuf->SIDH, data, 5 + frame->can_dlc);
+
+        /* set the control register to transmit request */
+        modifyRegister(instance, txbuf->CTRL, TXB_TXREQ, TXB_TXREQ);
+
+        /* Read control register */
+        readRegisters(instance, txbuf->CTRL, &ctrl, 1);
+
+        /* Check if the message was aborted, lost arbitration or suffered an error */
+        if ((ctrl & (TXB_ABTF | TXB_MLOA | TXB_TXERR)) != 0) 
+        {
+            retVal = MCP2515_E_FAILTX;
+        }
+        else
+        {
+            retVal = MCP2515_E_OK;
+        }
+    }
+    return retVal;
+}
+
+MCP2515_Error MCP2515_sendStaticFrame(MCP2515_instance *instance, const TXBn txbn, can_frame *frame)
+{
+    MCP2515_Error retVal = MCP2515_E_UNKNOWN;
+    uint8_t ctrl;
+
+    if(frame->can_dlc > CAN_MAX_DLEN) 
+    {
+        retVal = MCP2515_E_MSGTOOBIG;
+    }
+    else
+    {
+        const struct TXBn_REGS *txbuf = &TXB[txbn];
+
+        uint8_t data[13];
+
+
+        // bool     ext = (frame->can_id & CAN_EFF_FLAG);
+        // bool     rtr = (frame->can_id & CAN_RTR_FLAG);
+        // uint32_t id  = (frame->can_id & (ext ? CAN_EFF_MASK : CAN_SFF_MASK));
+
+        // prepareId(data, ext, id);
+
+        // data[MCP_DLC] = rtr ? (frame->can_dlc | RTR_MASK) : frame->can_dlc;
+
+        // memcpy(&data[MCP_DATA], frame->data, frame->can_dlc);
 
         setRegisters(instance, txbuf->SIDH, data, 5 + frame->can_dlc);
 
@@ -872,7 +940,7 @@ MCP2515_Error MCP2515_readMessage_Buff(MCP2515_instance *instance, const RXBn rx
     }
     else
     {
-        /* Set Remote Transfer Request bit */
+        /* Read Remote Transfer Request bit */
         readRegisters(instance, rxb->CTRL, &tempMsg, 1);
         id |= (CAN_RTR_FLAG * (RXBnCTRL_RTR & tempMsg));
         
@@ -916,3 +984,26 @@ MCP2515_Error MCP2515_readMessage(MCP2515_instance *instance, can_frame *frame)
     return retVal;
 }
 
+MCP2515_Error MCP2515_readMessage_DMA(MCP2515_instance *instance, can_frame *frame)
+{
+    MCP2515_Error retVal = MCP2515_E_UNKNOWN;
+
+    /* Check if there is new data received */
+    uint8_t status = getStatus(instance);
+
+    if(status & STAT_RX0IF)
+    {/* Buffer 0 has a new message */
+        retVal = MCP2515_readMessage_Buff(instance, RXB0, frame);
+    }
+    else
+    if(status & STAT_RX1IF)
+    {/* Buffer 1 has a new message */
+        retVal = MCP2515_readMessage_Buff(instance, RXB1, frame);
+    }
+    else
+    {/* No new messages present */
+        retVal = MCP2515_E_NOMSG;
+    }
+
+    return retVal;
+}

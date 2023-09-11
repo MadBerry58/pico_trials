@@ -29,6 +29,7 @@
         "mosfetcontrol.h": "c",
         "clocks.h": "c",
         "adresses.h": "c",
-        "rp2040.h": "c"
+        "rp2040.h": "c",
+        "peripherals.h": "c"
     }
 }

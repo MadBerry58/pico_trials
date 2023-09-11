@@ -50,4 +50,5 @@ MCP2515_Error MCP2515_sendMessage       (MCP2515_instance *instance,            
 MCP2515_Error MCP2515_readMessage_Buff  (MCP2515_instance *instance, const RXBn       rxbn,            can_frame *frame                         );
 MCP2515_Error MCP2515_readMessage       (MCP2515_instance *instance,                                   can_frame *frame                         );
 
+MCP2515_Error MCP2515_sendStaticFrame   (MCP2515_instance *instance, const TXBn       txbn,            can_frame *frame                         );
 #endif

@@ -1,14 +1,24 @@
-
-#include "pico/multicore.h"
 #include "picoOS.h"
 
+/* Required functionality init */
 uint8_t (*OS_init_Routines[])(void) = 
 {
-    init_Watchdog,
-    init_Hardware,
-    init_Comms,
-    init_Timers,
-    init_OS_scheduler
+    // init_Watchdog,
+    init_Hardware,  //hardware needs to be initialized before board can be used
+    init_Timers,    //timer functionality required for following components
+
+    init_Comms,     //connection to required for enabling network functionality
+    
+    init_OS_scheduler //populate core event/task lists
+};
+
+/* Required functionality init */
+uint8_t (*OS_main_Routines[])(void) = 
+{
+    // refresh_Watchdog,
+    // read_system_measurements,
+    // handle_messages
+
 };
 
 
@@ -50,21 +60,5 @@ uint8_t run_OS()
     {
         /*  */
     }
-    return retVal;
-}
-
-uint8_t init_nodeSM(uint8_t *nodeSM_initFunction())
-{
-    /* Init node SM using core 1 */
-    uint8_t retVal = 0u;
-
-    return retVal;
-}
-
-uint8_t run_nodeSM(uint8_t *nodeSM_runFunction())
-{
-    /* Run node SM */
-    uint8_t retVal = 0u;
-
     return retVal;
 }
