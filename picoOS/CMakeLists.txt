@@ -3,6 +3,7 @@ add_subdirectory(FlashControl)
 add_subdirectory(Hardware)
 add_subdirectory(Scheduler)
 add_subdirectory(Templates)
+add_subdirectory(SystemServices)
 
 add_library(picoOS
     picoOS.h

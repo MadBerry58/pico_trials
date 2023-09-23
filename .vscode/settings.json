@@ -30,6 +30,13 @@
         "clocks.h": "c",
         "adresses.h": "c",
         "rp2040.h": "c",
-        "peripherals.h": "c"
+        "peripherals.h": "c",
+        "errorcodes.h": "c",
+        "lightswitchsm.h": "c",
+        "windowcontrollersm.h": "c",
+        "controllogic.h": "c",
+        "lightcontrollersm.h": "c",
+        "mcp2515_can.h": "c",
+        "commsm_functionality.h": "c"
     }
 }

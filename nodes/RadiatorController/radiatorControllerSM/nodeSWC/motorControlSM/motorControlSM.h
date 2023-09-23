@@ -1,0 +1,4 @@
+#ifndef MOTOR_RADIATOR_CONTROL_SM
+#define MOTOR_RADIATOR_CONTROL_SM
+
+#endif

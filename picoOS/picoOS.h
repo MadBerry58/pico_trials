@@ -7,12 +7,12 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "Comm/Comm.h"
-#include "ErrorHandling/ErrorHandling.h"
 #include "FlashControl/FlashControl.h"
 #include "Hardware/Hardware.h"
 #include "Scheduler/Scheduler.h"
-#include "Timers/Timers.h"
-#include "Watchdog/Watchdog.h"
+#include "SystemServices/ErrorHandling/ErrorHandling.h"
+#include "SystemServices/Timers/Timers.h"
+#include "SystemServices/Watchdog/Watchdog.h"
 
 uint8_t init_OS(uint8_t nodeType, uint8_t nodeID);
 uint8_t run_OS();
@@ -24,11 +24,8 @@ typedef enum
     LightController,
     LightSwitch,
     RadiatorController,
-    Window
+    WindowController
     
 } NodeType_e;
-
-uint8_t init_nodeSM(uint8_t *nodeSM_initFunction());
-uint8_t run_nodeSM(uint8_t *nodeSM_runFunction());
 
 #endif

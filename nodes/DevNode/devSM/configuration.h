@@ -193,15 +193,13 @@ Task_t devSM_tasks[] = {
     {
         .taskID         = 1u,
         .taskFunction   = NULL,
-        .priority       = T_Prio_MODERATE,
-        .cycleTime      = 5u,
+        .cycleTimeMs    = 5u,
         .nextTrigger    = 0u
     },
     {
         .taskID         = 1u,
         .taskFunction   = NULL,
-        .priority       = T_Prio_MODERATE,
-        .cycleTime      = 5u,
+        .cycleTimeMs    = 5u,
         .nextTrigger    = 0u
     }
 };

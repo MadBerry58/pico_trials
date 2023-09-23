@@ -1,4 +1,11 @@
 #include "MCP2515_can.h"
+#include "../../../dma/dma.h"
+#include <string.h>
+
+#define CAN_DMA_CTRL               0u // DMA control channel should always be 0
+#define CAN_DMA_CHAN               1u // DMA data channel should always be 0
+
+#define SPI_PERIPHERAL             0u // SPI peripheral module - will depend on the pin arrangement
 
 #define DEFAULT_SPI_CLOCK 10 000 000u // 10MHz
 #define N_TXBUFFERS                3u
@@ -14,6 +21,11 @@
                             EFLG_TXEP   |\
                             EFLG_RXEP
 
+#define resetMask          (CANINTF_RX0IF |\
+                            CANINTF_RX1IF |\
+                            CANINTF_ERRIF |\
+                            CANINTF_MERRF)
+
 struct TXBn_REGS {
     MCP2515_reg  CTRL;
     MCP2515_reg  SIDH;
@@ -23,6 +35,7 @@ struct TXBn_REGS {
     {MCP_TXB1CTRL, MCP_TXB1SIDH, MCP_TXB1DATA},
     {MCP_TXB2CTRL, MCP_TXB2SIDH, MCP_TXB2DATA}
 };
+
 TXBn txBuffers[N_TXBUFFERS] = {TXB0, TXB1, TXB2};
 
 struct RXBn_REGS {
@@ -38,8 +51,113 @@ struct RXBn_REGS {
 MASK    masks  [] = {MASK0, MASK1};
 RXF     filters[] = {RXF0, RXF1, RXF2, RXF3, RXF4, RXF5};
 uint8_t zeros[14] = {0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u};
-uint8_t resetMask = (CANINTF_RX0IF | CANINTF_RX1IF | CANINTF_ERRIF | CANINTF_MERRF);
 uint8_t tempMsg   = 0u;
+
+/* DMA optimization data */
+
+typedef struct {
+    uint32_t                    read_address; 
+    uint32_t                    write_address; 
+    uint32_t                    transfer_count; 
+    dma_channel_bitwise_config  DMA_config;
+} dma_fullConfig;
+
+dma_fullConfig canDMA_write_config  = 
+{
+    .read_address   = 0u,
+    .write_address  = (uint32_t)(&(spi0_hw->dr)),
+    .transfer_count = 0u,
+    .DMA_config     = {
+        .channel_enabled        = false,        /* Only activate the channel when data exchange is necessary */
+        .high_priority          = true,         /* CAN handling is always high priority */
+        .data_size              = DMA_SIZE_8,   /* Each MCP2515 register is one byte in size */
+        .increment_read_adress  = true,         /* Allow DMA to read the whole buffer */
+        .increment_write_adress = false,        /* Write to the same SPI buffer */
+        .ring_size              = 0,            /* No natural 2^n ring alingnment available */
+        .read_write_ring        = 0,            /* No natural 2^n ring alingnment available */
+        .chain_to               = CAN_DMA_CTRL, /* Trigger control channel to allow reconfiguration */
+        .TREQ_select            = DREQ_SPI0_TX, /* Pace the data transfer to the spi FIFO */
+        .irq_quiet              = true,         /* Only trigger interrupts when NULL is received from the ctrl channel */
+        .byte_swap              = false,        /* No byte swap necessary */
+        .sniff_enabled          = false         /* No sniffing necessary */
+    }
+};
+
+dma_fullConfig canDMA_read_config = 
+{
+    .read_address   = (uint32_t)(&(spi0_hw->dr)),
+    .write_address  = 0u,
+    .transfer_count = 0u,
+    .DMA_config     = {
+        .channel_enabled        = false,        /* Only activate the channel when data exchange is necessary */
+        .high_priority          = true,         /* CAN handling is always high priority */
+        .data_size              = DMA_SIZE_8,   /* each MCP2515 register is one byte in size */
+        .increment_read_adress  = false,        /* Always read from the same spi FIFO register */
+        .increment_write_adress = true,         /* Write to a local buffer */
+        .ring_size              = 0,            /* No natural 2^n ring alingnment available */
+        .read_write_ring        = 0,            /* No natural 2^n ring alingnment available */
+        .chain_to               = CAN_DMA_CTRL, /* Trigger control channel to allow reconfiguration */
+        .TREQ_select            = DREQ_SPI0_RX, /* Pace the data transfer from the spi FIFO */
+        .irq_quiet              = true,         /* Only trigger interrupts when NULL is received from the ctrl channel */
+        .byte_swap              = false,        /* No byte swap necessary */
+        .sniff_enabled          = false         /* No sniffing necessary */
+    }
+};
+
+dma_fullConfig canDMA_controlChannel_config = 
+{
+    .read_address   = (uint32_t)(&(spi0_hw->dr)),
+    .write_address  = 0u,
+    .transfer_count = 0u,
+    .DMA_config     = {
+        .channel_enabled        = false,        /* Only activate the channel when data exchange is necessary */
+        .high_priority          = true,         /* CAN handling is always high priority */
+        .data_size              = DMA_SIZE_32,  /* each DMA control register is four bytes in size */
+        .increment_read_adress  = true,         /* Read data from the configuration buffer */
+        .increment_write_adress = true,         /* Write multiple configuration registers */
+        .ring_size              = 4,            /* 2^4 bytes, wrap around the 4 control registers of the data DMA channel */
+        .read_write_ring        = true,         /* Wrap around the write address */
+        .chain_to               = CAN_DMA_CTRL, /* Do not chain to any DMA channel. Data channel is started by writting to a trigger register */
+        .TREQ_select            = DREQ_FORCE,   /* No pacing necessary. Writing is done from and to internal buffers */
+        .irq_quiet              = true,         /* No interrupts necessary from this channel */
+        .byte_swap              = false,        /* No byte swap necessary */
+        .sniff_enabled          = false         /* No sniffing necessary */
+    }
+};
+
+uint8_t resetInstructions[] =
+{
+    MCP_TXB0CTRL, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    MCP_TXB1CTRL, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    MCP_TXB2CTRL, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    MCP_RXB0CTRL, 0,
+    MCP_RXB1CTRL, 0,
+    MCP_CANINTE,  resetMask
+};
+uint8_t resetInstructions_size = sizeof(resetInstructions) / sizeof(resetInstructions[0]);
+
+uint8_t modify_instruction_dma[4] = { 
+    INSTRUCTION_BITMOD, /* Device instruction to execute a masked write */ 
+    0u,                 /* Target register */
+    0u,                 /* Write mask */
+    0u                  /* Written data */
+};
+
+uint8_t write_instruction_dma [2] = { 
+    INSTRUCTION_WRITE,  /* Device instruction to write data to the target register */   
+    0u                  /* Target register */
+};
+
+uint8_t read_instruction_dma  [2] = { 
+    INSTRUCTION_READ,   /* Device instruction to read data from the target register */   
+    0u                  /* Target register */
+};
+uint8_t readBuffer[32u];
+uint8_t readCount;
+uint32_t modify_instruction_ctrl[] = 
+{ /*                          Read Address,               Write Adress,        Transfer Count,                          Config */
+    (uint32_t)(&modify_instruction_dma[0]), (uint32_t)(&(spi0_hw->dr)),                    4u, (uint32_t)(&canDMA_write_config)
+};
 
 void          prepareId           (uint8_t          *buffer,   const bool        ext,    const uint32_t id   );
 MCP2515_Error setMode             (MCP2515_instance *instance, const CANCTRL_REQOP_MODE mode);
@@ -63,18 +181,13 @@ uint8_t       getInterrupts       (MCP2515_instance *instance);
 uint8_t       getInterruptMask    (MCP2515_instance *instance);
 uint8_t       getStatus           (MCP2515_instance *instance);
 
-/* Helper Functions */
-static inline void  startSPI      (MCP2515_instance *instance);
-static inline void  endSPI        (MCP2515_instance *instance);
-
-static inline void     startSPI         (MCP2515_instance *instance)
+static inline void startSPI       (MCP2515_instance *instance)
 {
     asm volatile("nop \n nop \n nop");
     gpio_put(instance->CS_PIN, 0);
     asm volatile("nop \n nop \n nop");
 }
-
-static inline void     endSPI           (MCP2515_instance *instance)
+static inline void endSPI         (MCP2515_instance *instance)
 {
     asm volatile("nop \n nop \n nop");
     gpio_put(instance->CS_PIN, 1);
@@ -96,6 +209,20 @@ MCP2515_Error MCP2515_init(MCP2515_instance *instance)
 
     endSPI(instance);
 
+    /* Configure dedicate DMA channel */
+    if(dma_channel_is_claimed(CAN_DMA_CHAN))
+    {
+        retVal = MCP2515_E_DMA_UNAVAILABLE;
+    }
+    else
+    {
+        dma_hw->ch[CAN_DMA_CTRL].read_addr      = (uint32_t)canDMA_controlChannel_config.read_address;
+        dma_hw->ch[CAN_DMA_CTRL].write_addr     = (uint32_t)canDMA_controlChannel_config.write_address;
+        dma_hw->ch[CAN_DMA_CTRL].transfer_count = (uint32_t)canDMA_controlChannel_config.transfer_count;
+        // dma_hw->ch[CAN_DMA_CTRL].ctrl_trig      = (uint32_t)canDMA_controlChannel_config.DMA_config;
+    }
+
+
     return retVal;
 }
 
@@ -110,13 +237,6 @@ MCP2515_Error MCP2515_reset(MCP2515_instance *instance)
 
     //Depends on oscillator & capacitors used
     sleep_ms(10);
-
-    setRegisters    (instance, MCP_TXB0CTRL, zeros,     14);
-    setRegisters    (instance, MCP_TXB1CTRL, zeros,     14);
-    setRegisters    (instance, MCP_TXB2CTRL, zeros,     14);
-    setRegisters    (instance, MCP_RXB0CTRL, zeros,     1 );
-    setRegisters    (instance, MCP_RXB1CTRL, zeros,     1 );
-    setRegisters    (instance, MCP_CANINTE, &resetMask, 1 );
 
     // receives all valid messages using either Standard or Extended Identifiers that
     // meet filter criteria. RXF0 is applied for RXB0, RXF1 is applied for RXB1
@@ -155,10 +275,10 @@ MCP2515_Error MCP2515_reset(MCP2515_instance *instance)
 void readRegisters(MCP2515_instance *instance, const MCP2515_reg reg, uint8_t *values, const uint8_t data_length)
 {///INFO: single registry read has been removed. same functionality can be used with data_length == 1u
 
-    uint8_t data[2] = { INSTRUCTION_READ, reg};
+    uint8_t read_instruction[2] = { INSTRUCTION_READ, reg};
     startSPI(instance);
 
-    spi_write_blocking  (instance->SPI_CHANNEL, data, 2);
+    spi_write_blocking  (instance->SPI_CHANNEL, read_instruction, 2);
     spi_read_blocking   (instance->SPI_CHANNEL, 0x00, values, data_length);
 
     endSPI(instance);
@@ -167,11 +287,34 @@ void readRegisters(MCP2515_instance *instance, const MCP2515_reg reg, uint8_t *v
 void setRegisters(MCP2515_instance *instance, const MCP2515_reg  reg, uint8_t *values,   const uint8_t  data_length)
 {
     /* Build write instruction */
-    uint8_t data[2] = { INSTRUCTION_WRITE, reg };
+    uint8_t write_instruction[2] = { INSTRUCTION_WRITE, reg };
     startSPI(instance);
 
     /* Send write instruction */
-    spi_write_blocking(instance->SPI_CHANNEL, data, 2);
+    spi_write_blocking(instance->SPI_CHANNEL, write_instruction, 2);
+    
+    /* Send new values */
+    spi_write_blocking(instance->SPI_CHANNEL, values, data_length);
+
+    endSPI(instance);
+}
+
+void readRegisters_DMA(MCP2515_instance *instance, const MCP2515_reg reg, uint8_t *values, const uint8_t data_length)
+{///INFO: single registry read has been removed. same functionality can be used with data_length == 1u
+    startSPI(instance);
+    
+    spi_write_blocking  (instance->SPI_CHANNEL, read_instruction_dma, 2);
+    spi_read_blocking   (instance->SPI_CHANNEL, 0x00, values, data_length);
+
+    endSPI(instance);
+}
+
+void setRegisters_DMA(MCP2515_instance *instance, const MCP2515_reg  reg, uint8_t *values,   const uint8_t  data_length)
+{
+    startSPI(instance);
+
+    /* Send write instruction */
+    spi_write_blocking(instance->SPI_CHANNEL, write_instruction_dma, 2);
     
     /* Send new values */
     spi_write_blocking(instance->SPI_CHANNEL, values, data_length);
@@ -241,12 +384,12 @@ MCP2515_Error MCP2515_setNormalMode(MCP2515_instance *instance)
 
 bool            checkReceive     (MCP2515_instance *instance)
 {
-    return (0u < (STAT_RXIF_MASK & (getStatus(instance))));
+    return (0u < ((uint8_t)(getStatus(instance)) & (uint8_t)(STAT_RXIF_MASK)));
 }
 
 bool            checkError       (MCP2515_instance *instance)
 {
-    return (0u < (EFLG_ERRORMASK & (getErrorFlags(instance))));
+    return (0u < ((uint8_t)(getErrorFlags(instance)) & (uint8_t)(EFLG_ERRORMASK)));
 }
 
 uint8_t         getErrorFlags    (MCP2515_instance *instance)
@@ -745,7 +888,7 @@ MCP2515_Error MCP2515_setFilter(MCP2515_instance *instance, const RXF num, const
 {
     MCP2515_Error res = MCP2515_E_UNKNOWN;
 
-    res = setConfigMode(instance);
+    res = setMode(instance, CANCTRL_REQOP_CONFIG);
 
     if (res == MCP2515_E_OK) 
     {

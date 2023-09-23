@@ -138,31 +138,28 @@
 
 /* DMA configuration templates
     Each template is generated at compile time, reducing runtime load.
-    Each configuration takes 4 bytes (32bits) 
-
+    Each configuration takes 4 bytes (32bits)
+    Structure is not portable, but then again, it is made specifically for the pico DMA
 */
-
-///WARNING: possible bit stuffing undetermined alignment issues
-// /* Avoid using complex binary operations by aligning the configuration bits with bitstuffing */
-// typedef struct {
-//     uint8_t AHB_ERROR    :1; //[31]
-//     uint8_t READ_ERROR   :1; //[30]
-//     uint8_t WRITE_ERROR  :1; //[29]
-//     uint8_t RESERVED     :4; //[28-25]
-//     uint8_t BUSY         :1; //[24]
-//     uint8_t SNIFF_EN     :1; //[23]
-//     uint8_t BSWAP        :1; //[22]
-//     uint8_t IRQ_QUIET    :1; //[21]
-//     uint8_t TREQ_SEL     :6; //[20-15]
-//     uint8_t CHAIN_TO     :4; //[14-11]
-//     uint8_t RING_SEL     :1; //[10]
-//     uint8_t RING_SIZE    :4; //[9-6]
-//     uint8_t INCR_WRITE   :1; //[5]
-//     uint8_t INCR_READ    :1; //[4]
-//     uint8_t DATA_SIZE    :2; //[3-2]
-//     uint8_t HIGH_PRIORITY:1; //[1]
-//     uint8_t TRIG_EN      :1; //[0]
-// } dma_channel_bitstuffed_config;
+typedef struct {
+    uint8_t channel_enabled         :1; //[0]
+    uint8_t high_priority           :1; //[1]
+    uint8_t data_size               :2; //[3-2]
+    uint8_t increment_read_adress   :1; //[4]
+    uint8_t increment_write_adress  :1; //[5]
+    uint8_t ring_size               :4; //[9-6]
+    uint8_t read_write_ring         :1; //[10]
+    uint8_t chain_to                :4; //[14-11]
+    uint8_t TREQ_select             :6; //[20-15]
+    uint8_t irq_quiet               :1; //[21]
+    uint8_t byte_swap               :1; //[22]
+    uint8_t sniff_enabled           :1; //[23]
+    uint8_t dma_busy                :1; //[24]
+    uint8_t RESERVED                :4; //[28-25]
+    uint8_t WRITE_ERROR             :1; //[29]
+    uint8_t READ_ERROR              :1; //[30]
+    uint8_t AHB_ERROR               :1; //[31]
+} dma_channel_bitwise_config;
 
 typedef struct
 {
@@ -173,57 +170,57 @@ typedef struct
 } dmaTemplate_t;
 
 /* Data sequence is transfered all at once, with IRQ being generated at the end */
-dmaTemplate_t bulkData_quiet = 
-{ 
-    .config =   {0x00000000 | 
-                    (
-                        DMA_INCR_WRITE  |
-                        DMA_INCR_READ   |
-                        DMA_DATA_SIZE   |
-                        DMA_HIGH_PRIORITY
-                    )
-                },
-    .readSource = 0u,
-    .writeDestination = 0u,
-    .dataCount = 0u
-};
+// dmaTemplate_t bulkData_quiet = 
+// { 
+//     .config =   {0x00000000 | 
+//                     (
+//                         DMA_INCR_WRITE  |
+//                         DMA_INCR_READ   |
+//                         DMA_DATA_SIZE   |
+//                         DMA_HIGH_PRIORITY
+//                     )
+//                 },
+//     .readSource = 0u,
+//     .writeDestination = 0u,
+//     .dataCount = 0u
+// };
 
 
 /* Data transfers sequences are spaced with null triggers in order to generate IRQs periodically */
-dma_channel_config bulkData_segmented_ctrl = { 0x00000000 | 
-    (
-        (16u << DMA_RING_SIZE_LSHIFT) | //wrap around 4 configuration registers
-        DMA_RING_SEL    |
-        DMA_INCR_WRITE  |
-        DMA_INCR_READ   |
-        DMA_DATA_SIZE   |
-        DMA_HIGH_PRIORITY
-    )
-};
+// dma_channel_config bulkData_segmented_ctrl = { 0x00000000 | 
+//     (
+//         (16u << DMA_RING_SIZE_LSHIFT) | //wrap around 4 configuration registers
+//         DMA_RING_SEL    |
+//         DMA_INCR_WRITE  |
+//         DMA_INCR_READ   |
+//         DMA_DATA_SIZE   |
+//         DMA_HIGH_PRIORITY
+//     )
+// };
 
-dma_channel_config bulkData_segmented_data = { 0x00000000 | 
-    (
-        DMA_INCR_WRITE  |
-        DMA_INCR_READ   |
-        DMA_DATA_SIZE   |
-        DMA_HIGH_PRIORITY
-        // DMA_CHAIN_TO - dma chain has to be set after knowing the control channel ID
-    )
+// dma_channel_config bulkData_segmented_data = { 0x00000000 | 
+//     (
+//         DMA_INCR_WRITE  |
+//         DMA_INCR_READ   |
+//         DMA_DATA_SIZE   |
+//         DMA_HIGH_PRIORITY
+//         // DMA_CHAIN_TO - dma chain has to be set after knowing the control channel ID
+//     )
 
-/* add adress list template for periodic interrupts */
-};
+// /* add adress list template for periodic interrupts */
+// };
 
 
 /* Peripheral handler configurations */
 ///TODO: Module buffers must be defined at compile time
 ///TODO: Define ADC buffer size
-dma_channel_config adc_dreq_handler = { 0x00000000 | 
-    (
-        DMA_INCR_WRITE  |
-        (8u << DMA_RING_SIZE_LSHIFT) |  //circular buffer composed of a 8 byte adress wrap
-        (DREQ_ADC << DMA_TREQ_SEL_LSHIFT )    //adc data pacing 
-    )
-};
+// dma_channel_config adc_dreq_handler = { 0x00000000 | 
+//     (
+//         DMA_INCR_WRITE  |
+//         (8u << DMA_RING_SIZE_LSHIFT) |  //circular buffer composed of a 8 byte adress wrap
+//         (DREQ_ADC << DMA_TREQ_SEL_LSHIFT )    //adc data pacing 
+//     )
+// };
 
 ///TODO: find a way to properly expose the dreq RX/TX functionality
 // dma_channel_config pio_dreq_handler = { 0x00000000 | 
@@ -234,22 +231,22 @@ dma_channel_config adc_dreq_handler = { 0x00000000 |
 //     )
 // };
 
-dma_channel_config i2c_dreq_handler = { 0x00000000 | 
-    (
-        DMA_INCR_WRITE  |
-        DMA_INCR_READ   |
-        DMA_DATA_SIZE   |
-        DMA_HIGH_PRIORITY
-    )
-};
+// dma_channel_config i2c_dreq_handler = { 0x00000000 | 
+//     (
+//         DMA_INCR_WRITE  |
+//         DMA_INCR_READ   |
+//         DMA_DATA_SIZE   |
+//         DMA_HIGH_PRIORITY
+//     )
+// };
 
-dma_channel_config uart_dreq_handler = { 0x00000000 | 
-    (
-        DMA_INCR_WRITE  |
-        DMA_INCR_READ   |
-        DMA_DATA_SIZE   |
-        DMA_HIGH_PRIORITY
-    )
-};
+// dma_channel_config uart_dreq_handler = { 0x00000000 | 
+//     (
+//         DMA_INCR_WRITE  |
+//         DMA_INCR_READ   |
+//         DMA_DATA_SIZE   |
+//         DMA_HIGH_PRIORITY
+//     )
+// };
 
 #endif

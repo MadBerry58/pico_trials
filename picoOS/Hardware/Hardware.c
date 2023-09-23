@@ -1,15 +1,15 @@
 #include "Hardware.h"
 
-uint8_t init_Hardware()
+Errors_OS_e init_Hardware()
 {
-    uint8_t retVal = 0u;
+    Errors_OS_e retVal = OS_E_OK;
 
     return retVal;
 }
 
-uint8_t run_Hardware()
+Errors_OS_e run_Hardware()
 {
-    uint8_t retVal = 0u;
+    Errors_OS_e retVal = OS_E_OK;
 
     return retVal;
 }

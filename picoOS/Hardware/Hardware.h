@@ -3,6 +3,8 @@
 
 #include <stdio.h>
 
+#include "../SystemServices/ErrorHandling/ErrorCodes.h"
+
 #include "dma/dma.h"
 #include "interrupts/interrupts.h"
 #include "memory/memory.h"
@@ -20,8 +22,8 @@ typedef struct {
 } Hardware_config;
  */
 
-uint8_t init_Hardware();
+Errors_OS_e init_Hardware();
 
-uint8_t run_Hardware();
+Errors_OS_e run_Hardware();
 
 #endif

@@ -30,6 +30,17 @@ char *datetime_str = &datetime_buf[0];
 ///TODO: Add RTC timeout functionality
 ///TODO: Add internal timeout functionality
 
+Errors_OS_e init_Timers()
+{
+    uint8_t retVal = OS_E_OK;
+
+    // Start the RTC
+    rtc_init();
+    rtc_set_datetime(&t);
+
+    return retVal;
+}
+
 uint8_t start_RTC()
 {
     uint8_t retVal = 0u;
@@ -42,17 +53,6 @@ uint8_t get_RTC(char *output_buf, size_t output_buf_size)
     uint8_t retVal = 0u;
     rtc_get_datetime(&t);
     datetime_to_str(output_buf, output_buf_size, &t);
-    return retVal;
-}
-
-uint8_t init_Timers()
-{
-    uint8_t retVal = 0u;
-
-    // Start the RTC
-    rtc_init();
-    rtc_set_datetime(&t);
-
     return retVal;
 }
 

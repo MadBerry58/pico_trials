@@ -8,5 +8,6 @@ add_library(spi_can
 target_link_libraries(spi_can PUBLIC
         pico_stdlib 
         hardware_spi
+        hardware_dma
 )
 

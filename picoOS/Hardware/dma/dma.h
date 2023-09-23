@@ -2,6 +2,7 @@
 #define DMA_H
 
 #include <stdio.h>
+#include "dma_configs.h"
 
 enum ADC_pins
 {

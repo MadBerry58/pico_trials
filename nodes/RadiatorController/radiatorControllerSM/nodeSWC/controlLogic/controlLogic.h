@@ -1,0 +1,6 @@
+#ifndef RADIATOR_CONTROL_LOGIC_H
+#define RADIATOR_CONTROL_LOGIC_H
+
+
+
+#endif

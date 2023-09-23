@@ -1,5 +1,6 @@
 #ifndef ERROR_CODES_H
 #define ERROR_CODES_H
+#include "pico/stdlib.h"
 
 typedef enum {
     E_CRITICAL,
@@ -58,5 +59,18 @@ typedef enum {
     E_R_IMEDIATE_REBOOT,
     E_R_SAFE_MODE
 } Error_Response_e;
+
+typedef enum
+{
+    COMM_SM_E_OK,
+    COMM_SM_E_UNINIT,
+    COMM_SM_E_NO_RESPONSE,
+    COMM_SM_E_READ,
+    COMM_SM_E_WRITE,
+    COMM_SM_E_UNKNOWN_STATE,
+    COMM_SM_E_UNKNOWN_REQUEST,
+
+    COMM_SM_E_UNKNOWN
+} CommSM_Error;
 
 #endif

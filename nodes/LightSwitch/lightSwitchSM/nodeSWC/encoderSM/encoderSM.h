@@ -1,0 +1,6 @@
+#ifndef ENCODER_LIGHT_SWITCH_SM_H
+#define ENCODER_LIGHT_SWITCH_SM_H
+
+
+
+#endif

@@ -1,28 +1,43 @@
 #include "Comm.h"
 #include "hardware/irq.h"
 
-uint8_t init_Comms()
-{
-    uint8_t errorVal = 0u;
+#define NETWORK_CONNECT_TIMEOUT_MS 5000u /* 5 seconds to connect */
 
-    //Send Comm broadcast (Network ID + checksum)
-    
+Errors_OS_e init_Comms()
+{
+    Errors_OS_e errorVal = OS_E_OK;
+    CommSM_Error commSM_error = COMM_SM_E_OK;
+
+    /* *****************************************
+      Send Comm broadcast (Network ID + checksum)
+       ***************************************** */
+
     /* initialize comm hw components */
+    commSM_error = commSM_init();
+    if(COMM_SM_E_OK != commSM_error)
+    {
+        uint16_t timeout;
+
+        /* Start timer */
+
+        while((timeout < NETWORK_CONNECT_TIMEOUT_MS) && (COMM_SM_E_OK == commSM_error))
+        {
+            commSM_run();
+            /* check if network message is detected */
+        }
+
+        /* check if network is not available */
+    }
+    else
+    {
+        /*CommSM initialization failed */
+    }
+
+
+    
     /* bind software ports */
     /* test software ports */
-
-    //Check for response
-        //Handle errors
-    //check if the data frames are up to date
     return errorVal;
-}
-
-uint8_t network_connect(uint8_t nodeType,       uint8_t nodeID)
-{
-    uint8_t retVal = 0u;
-    
-
-    return retVal;
 }
 
 /**

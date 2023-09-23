@@ -2,8 +2,9 @@
 #define TIMERS_H
 
 #include <stdio.h>
+#include "../ErrorHandling/ErrorCodes.h"
 
-uint8_t init_Timers();
+Errors_OS_e init_Timers();
 
 uint8_t sync_timer();
 

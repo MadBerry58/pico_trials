@@ -1,19 +1,19 @@
 #include "picoOS.h"
 
 /* Required functionality init */
-uint8_t (*OS_init_Routines[])(void) = 
+Errors_OS_e (*OS_init_Routines[])(void) = 
 {
     // init_Watchdog,
-    init_Hardware,  //hardware needs to be initialized before board can be used
-    init_Timers,    //timer functionality required for following components
+    init_Hardware,      //hardware needs to be initialized before board can be used
+    init_Timers,        //timer functionality required for following components
 
-    init_Comms,     //connection to required for enabling network functionality
+    init_Comms,         //connection to required for enabling network functionality
     
-    init_OS_scheduler //populate core event/task lists
+    init_OS_scheduler   //populate core event/task lists
 };
 
 /* Required functionality init */
-uint8_t (*OS_main_Routines[])(void) = 
+Errors_OS_e (*OS_main_Routines[])(void) = 
 {
     // refresh_Watchdog,
     // read_system_measurements,
@@ -28,15 +28,6 @@ uint8_t init_OS(uint8_t nodeType, uint8_t nodeID)
 {
     uint8_t retVal = 0u;
     /* Initialize OS modules */
-    for(uint8_t i = 0u; i < init_routine_no; ++i)
-    {
-        retVal = OS_init_Routines[i]();
-        if(0u != retVal)
-        {
-            /* Handle init error */
-        }
-    }
-
     /* Establish communication with the network */
     // network_connect(nodeType, nodeID);
     // printf("OS initialized\n");

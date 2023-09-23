@@ -1,41 +1,31 @@
-#include "EncoderSM/EncoderSM.h"
-// #include "ws2812_api.h"
+#include "../../picoOS/picoOS.h"
 
-repeating_timer_t timer;
-bool TaskA(repeating_timer_t *rt);
-uint response;
-uint ledPattern;
+#include "pico/multicore.h"
+#include "lightSwitchSM/lightSwitchSM.h"
 
-#define PIXELS 120
-#define LIGHT_INTENSITY 100
+#define LIGHT_SWITCH_ID 2U
+
+uint32_t 	nodeError = 0u;
+NodeType_e 	node_type = LightController;
 
 int main()
 {
 
-	stdio_init_all();
-	EncoderSM_init();
-	// ws2812_api_init();
+    /* Initialize base OS functionality */
+    stdio_init_all();
+    init_OS(node_type, LIGHT_SWITCH_ID);
 
-	// negative timeout means exact delay (rather than delay between callbacks)
-	if (!add_repeating_timer_ms(-5, TaskA, NULL, &timer)) {
-		printf("Failed to add timer\n");
-		return 1;
-	}
+    /* Reset previous core code */
+    multicore_reset_core1();
+    /* Initialize node-specific functionality on core 1 */
+    multicore_launch_core1(core_lightSwitchSM);
 
-	printf("Hello GPIO IRQ\n");
-	while (1)
-	{
-		if(response > 0)
-		{
-			ledPattern += ((response == 2) * (-1)) + ((response == 3) * (1u));
-			// ws2812_api_switchPattern(ledPattern, PIXELS, LIGHT_INTENSITY);
-		}
-	}
-}
+    // nodeError = multicore_fifo_pop_blocking();
+    /* Start the OS and trigger the node scheduler loop */
+    // run_OS();
+    while(1)
+    {
 
-bool TaskA(repeating_timer_t *rt) 
-{
-	EncoderSM_run(&response);
-	// printf("RunningTaskA\n");
-    return true; // keep repeating
+    }
+    printf("End of program: %llu", nodeError);
 }

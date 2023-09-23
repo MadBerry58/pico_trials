@@ -6,9 +6,9 @@
  * @param taskList 
  * @return uint8_t 
  */
-uint8_t init_OS_scheduler   (Task_t *taskList)
+Errors_OS_e init_OS_scheduler (void)
 {
-    uint8_t retVal = 0u;
+    Errors_OS_e retVal = 0u;
     
     return retVal;
 }
@@ -21,12 +21,12 @@ uint8_t init_OS_scheduler   (Task_t *taskList)
  */
 uint8_t init_Node_Scheduler (Task_t *taskList)
 {
-    uint8_t retVal = 0u;
+    uint8_t retVal = OS_E_OK;
 
     return retVal;
 }
 
-uint8_t updateEvents        (Event_t *eventList, Event_t *executionList)
+uint8_t updateEvents        (Event_t *eventList)
 {
     uint8_t retVal = 0u;
 

@@ -10,6 +10,7 @@
 
 typedef enum {
     MCP2515_E_OK              ,
+    MCP2515_E_DMA_UNAVAILABLE ,
     MCP2515_E_FAIL            ,
     MCP2515_E_ALLTXBUSY       ,
     MCP2515_E_FAILINIT        ,
