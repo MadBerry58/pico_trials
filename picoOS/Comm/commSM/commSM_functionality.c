@@ -1,15 +1,20 @@
 #include "commSM_functionality.h"
 
+void messageReceivedCallback()
+{
+    /* Handle immediate priority message */
+}
+
 bool messageReceived    (void)
 {
     bool retVal = false;
-
+    /* Handle low priority message */
     return retVal;
 }
 bool readDataAvailable  (void)
 {
     bool retVal = false;
-
+    
     return retVal;
 }
 bool readingError       (void)

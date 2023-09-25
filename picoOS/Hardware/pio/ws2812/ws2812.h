@@ -58,13 +58,13 @@ typedef struct
 
 typedef struct 
 {
-    uint8_t     smID;
-    uint8_t     pin;
+    uint8_t                     smID;
+    uint8_t                     pin;
 
 
-    bool        updateFlag;
-    bool        loopControl;
-    uint16_t    patternIndex;
+    bool                        updateFlag;
+    bool                        loopControl;
+    uint16_t                    patternIndex;
 
     ws2812_sm_pattern          *patternLocation;
     ws2812_sm_notificationType  notificationFlag;

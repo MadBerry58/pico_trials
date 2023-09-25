@@ -1,5 +1,4 @@
 #include "devSM.h"
-#include "configuration.h"
 
 void internalLogic_devNodeSM();
 
@@ -46,75 +45,5 @@ void core_devNodeSM()
 
 void internalLogic_devNodeSM()
 {
-    /* compute necessary notification update flags */
-    if(buttonState != prevButtonState)
-    {
-        if(BUTTON_PRESSED == buttonState)
-        {
-            printf("Button Pressed\n");
-            msPressed = 0u;
-        }
-        else
-        {
-            printf("Button Released\n");
-            ///TODO: add timer functionality
-            /* Check if timer is pressed for certain amounts of time */
-            if(msPressed > SWITCH_TIME)
-            {/* Switch light control */
-                printf("Switching target\n");
-                target = (target + 1) % no_of_Targets;
-                msPressed = 0u;
-            }
-            else
-            if(msPressed > CUSTOMIZE_TIME)
-            {/* Customize pattern */
-                printf("Switching to customization\n");
-                msPressed = 0u;
-            }
-            else
-            {/* Change pattern */
-
-            }
-        }
-    }
-    else
-    if(BUTTON_PRESSED == buttonState)
-    {
-        ///TODO: add timer functionality
-        msPressed += CYCLE_TIME;
-        if(0u > (CYCLE_TIME % prevTime))
-        {
-            prevTime += 1000;
-            printf("Button pressed for %d seconds\n", (msPressed / 1000u));
-        }
-    }
-    else
-    {
-        /* Button is not pressed */
-    }        
-
-    if(encoderPosition_old != encoderPosition)
-    {
-        // if(
-        //     (RGB_control == target)
-        //     //  && ()
-        // )
-        // {
-        //     case :
-        //         /* notify rgb SM for update */
-        //         ws2812SM.patternLocation = (&(patterns[encoderPosition % patternNumber]));
-        //         ws2812SM.updateFlag = true;
-        //         break;
-        //     case LED_control:
-        //         /* notify white LED SM for update */
-        //         break;
-        //     default:
-
-        //         break;
-        // }
-    }
-    else
-    {
-        /* no pattern update */
-    }
+    
 }

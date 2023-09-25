@@ -1,5 +1,5 @@
-#ifndef PUSH_BUTTON_SM
-#define PUSH_BUTTON_SM
+#ifndef WINDOW_CONTROL_PUSH_BUTTON_SM
+#define WINDOW_CONTROL_PUSH_BUTTON_SM
 
 #include "pico/stdlib.h"
 

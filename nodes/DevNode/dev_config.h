@@ -2,6 +2,7 @@
 #define DEV_CONFIG_H
 
 #include "../../../picoOS/picoOS.h"
+#include "devSM/nodeSWC/pushButtonSM/pushButtonSM.h"
 
 #define ENCODER_AB_PINS     16
  /* GPIO16, 17 */
@@ -16,6 +17,77 @@
 
 #define Button_Pressed      true
 #define Button_Released     false
+
+
+/* Helper functions */
+#define MS_TO_US(value) (value * 1000u)
+
+/* Local definitions */
+#define BUTTON_PRESSED          true
+#define PUSH_BUTTON_DEBOUNCE_MS     100u
+#define SWITCH_TIME_MS              1000u
+#define CUSTOMIZE_PATTERN_TIME_MS   3000u
+#define NOTIFICATION_TIME_MS        1000u
+
+#define MULTITAP_TIMEOUT            500u
+
+#define CUSTOMIZATION_TIMEOUT       5000u
+
+/* SWC external variables */
+
+bool    encoderPushButton_status    = false;
+uint8_t encoderPosition             = 0u;
+
+/************************************************
+ * State machines
+ ************************************************/
+
+/**
+ * @brief 
+ * 
+ */
+ws2812_sm ws2812SM = {
+    .smID               = 1,
+    .pin                = WS2812_PIN,
+    .updateFlag         = false,
+    .loopControl        = false,
+    .patternLocation    = (&(patterns[0])),
+    .notificationFlag   = SM_WS2812_N_NONE,
+    .sm_state           = SM_WS2812_UNINIT,
+    .sm_request         = SM_WS2812_R_NONE
+};
+
+/**
+ * @brief 
+ * 
+ */
+quadrature_encoder_sm quadratureSM = {
+    .smID             = 0,
+    .abPin            = ENCODER_AB_PINS,
+    .buttonPin        = ENCODER_C_PIN,
+    .buttonOutput     = &buttonState,
+    .rotationOutput   = &encoderPosition,
+    .loopControl      = false,
+    .prevButton       = 0,
+    .prevRotation     = 0,
+    .notificationFlag = SM_QUADRATURE_N_NONE,
+    .sm_state         = SM_QUADRATURE_UNINIT,
+    .sm_request       = SM_QUADRATURE_R_NONE
+};
+
+/**
+ * @brief 
+ * 
+ */
+
+/* State machine configurations */
+pushButtonSM_type pushButtonSM_encoder_config = 
+{
+    .pinPull            = true,
+    .buttonPin          = 6u,
+    .debounceTimeC_us   = MS_TO_US(PUSH_BUTTON_DEBOUNCE_MS),
+    .buttonPressed      = &(encoderPushButton_status)
+};
 
 uint32_t rgbPatterns[][PIXEL_NUMBER] = {
     {
@@ -138,7 +210,7 @@ ws2812_sm_pattern patterns[] =
         .patternList        = (uint32_t**)(&(rgbPatterns[1]))
     }
 };
-const uint8_t patternNumber = sizeof(patterns) / sizeof(patterns[0]);
+const uint8_t RGB_patternNumber = sizeof(patterns) / sizeof(patterns[0]);
 
 
 typedef enum 
@@ -156,16 +228,7 @@ typedef enum
     RGB_STOPPED
 } RGB_State;
 
-ws2812_sm ws2812SM = {
-    .smID               = 1,
-    .pin                = WS2812_PIN,
-    .updateFlag         = false,
-    .loopControl        = false,
-    .patternLocation    = (&(patterns[0])),
-    .notificationFlag   = SM_WS2812_N_NONE,
-    .sm_state           = SM_WS2812_UNINIT,
-    .sm_request         = SM_WS2812_R_NONE
-};
+
 static bool buttonState;
 static bool prevButtonState;
 static uint32_t msPressed;
@@ -174,19 +237,7 @@ static uint32_t prevTime;
 /* Quadrature encoder  */
 static uint8_t encoderPosition;
 static uint8_t encoderPosition_old;
-quadrature_encoder_sm quadratureSM = {
-    .smID             = 0,
-    .abPin            = ENCODER_AB_PINS,
-    .buttonPin        = ENCODER_C_PIN,
-    .buttonOutput     = &buttonState,
-    .rotationOutput   = &encoderPosition,
-    .loopControl      = false,
-    .prevButton       = 0,
-    .prevRotation     = 0,
-    .notificationFlag = SM_QUADRATURE_N_NONE,
-    .sm_state         = SM_QUADRATURE_UNINIT,
-    .sm_request       = SM_QUADRATURE_R_NONE
-};
+
 
 
 Task_t devSM_tasks[] = {

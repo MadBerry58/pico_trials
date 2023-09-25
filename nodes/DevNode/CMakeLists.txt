@@ -1,7 +1,8 @@
 add_subdirectory(devSM)
 
 add_executable(devNode 
-    devNode.c
+    dev_config.h
+    dev_Node.c
 )
 
 target_link_libraries(devNode PUBLIC

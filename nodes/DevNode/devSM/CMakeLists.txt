@@ -1,7 +1,33 @@
 add_library(devSM_lib
     devSM.h
     devSM.c
-    configuration.h
+    # configuration.h
+    nodeSWC/controlLogicSM/controlLogicSM.h
+    nodeSWC/controlLogicSM/controlLogicSM.c
+
+    nodeSWC/encoderSM/encoderSM.h
+    nodeSWC/encoderSM/encoderSM.c
+
+    nodeSWC/ledSM/ledSM.h
+    nodeSWC/ledSM/ledSM.c
+
+    nodeSWC/lightSensSM/lightSensSM.h
+    nodeSWC/lightSensSM/lightSensSM.c
+    
+    nodeSWC/motorControlSM/motorControlSM.h
+    nodeSWC/motorControlSM/motorControlSM.c
+    
+    nodeSWC/pushButtonSM/pushButtonSM.h
+    nodeSWC/pushButtonSM/pushButtonSM.c
+    
+    nodeSWC/rgb_stripSM/rgb_stripSM.h
+    nodeSWC/rgb_stripSM/rgb_stripSM.c
+
+    nodeSWC/rgb_ringSM/rgb_ringSM.h
+    nodeSWC/rgb_ringSM/rgb_ringSM.c
+    
+    nodeSWC/tempSensSM/tempSensSM.h
+    nodeSWC/tempSensSM/tempSensSM.h
 )
 
 target_link_libraries(devSM_lib PUBLIC

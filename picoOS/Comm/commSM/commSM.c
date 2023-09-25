@@ -7,7 +7,7 @@ enum commSM_state_e
 {
     COMM_SM_S_UNINITIALIZED,
     COMM_SM_S_INITIALIZED,
-    COMM_SM_S_LISTENING,
+    COMM_SM_S_IDLE,
     COMM_SM_S_READING,
     COMM_SM_S_WRITING,
     COMM_SM_S_REQUEST_RECEIVED,
@@ -52,12 +52,12 @@ CommSM_Error commSM_run(void)
                 break;
 
             case COMM_SM_S_INITIALIZED:                 /* SM was correctly initialized */
-                commSM_state = COMM_SM_S_LISTENING;     /* Change SM state to LISTENING */
+                commSM_state = COMM_SM_S_IDLE;     /* Change SM state to LISTENING */
                 retVal = COMM_SM_E_OK;                  /* Indicate no error has occured */
                 loop = true;                            /* Allow SM to transition to listening state */
                 break;
 
-            case COMM_SM_S_LISTENING:                   /* SM is waiting for an incomming message */
+            case COMM_SM_S_IDLE:                   /* SM is waiting for an incomming message */
                 if(messageReceived())                   /* Check if any messages have been received */
                 {
                     commSM_state = COMM_SM_S_READING;   /* Change SM state to READING */
@@ -71,7 +71,7 @@ CommSM_Error commSM_run(void)
                 }
                 else
                 {
-                    commSM_state = COMM_SM_S_LISTENING; /* Remain in LISTENING state */
+                    commSM_state = COMM_SM_S_IDLE; /* Remain in LISTENING state */
                     retVal = COMM_SM_E_OK;              /* Indicate no error has occured */
                     loop = false;                       /* Exit sm loop */
                 }
@@ -94,7 +94,7 @@ CommSM_Error commSM_run(void)
                 }
                 else                                    /* Reading has finished successfully */
                 {
-                    commSM_state = COMM_SM_S_LISTENING; /* Change SM state to LISTENING */
+                    commSM_state = COMM_SM_S_IDLE; /* Change SM state to LISTENING */
                     retVal = COMM_SM_E_READ;            /* Indicate no error has occured */
                     loop = false;                       /* Exit sm loop */
                 }
@@ -117,7 +117,7 @@ CommSM_Error commSM_run(void)
                 }
                 else
                 {
-                    commSM_state = COMM_SM_S_LISTENING; /* Change SM state to LISTENING */
+                    commSM_state = COMM_SM_S_IDLE; /* Change SM state to LISTENING */
                     retVal = COMM_SM_E_READ;            /* Indicate no error has occured */
                     loop = false;                       /* Exit sm loop */
                 }

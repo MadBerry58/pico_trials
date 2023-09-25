@@ -37,6 +37,10 @@
         "controllogic.h": "c",
         "lightcontrollersm.h": "c",
         "mcp2515_can.h": "c",
-        "commsm_functionality.h": "c"
+        "commsm_functionality.h": "c",
+        "type_traits": "c",
+        "pushbuttonsm.h": "c",
+        "dev_config.h": "c",
+        "controllogicsm.h": "c"
     }
 }
