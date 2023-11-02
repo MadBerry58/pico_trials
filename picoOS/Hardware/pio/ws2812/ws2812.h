@@ -10,8 +10,8 @@
 typedef enum
 {
     SM_WS2812_UNINIT,
-    SM_WS2812_READY,
-    SM_WS2812_RUNNING,
+    SM_WS2812_STATIC,
+    SM_WS2812_DYNAMIC,
     SM_WS2812_STOPPED,
     SM_WS2812_FAULT
 }ws2812_sm_state;
@@ -61,10 +61,7 @@ typedef struct
     uint8_t                     smID;
     uint8_t                     pin;
 
-
-    bool                        updateFlag;
-    bool                        loopControl;
-    uint16_t                    patternIndex;
+    uint16_t                    currentPatternIndex;
 
     ws2812_sm_pattern          *patternLocation;
     ws2812_sm_notificationType  notificationFlag;
@@ -74,6 +71,6 @@ typedef struct
 
 ws2812_sm_error init_ws2812(ws2812_sm* sm_data);
 
-ws2812_sm_error run_ws2812 (ws2812_sm* sm_data);
+void ws2812_loadPattern(int sm, uint32_t *pattern, uint16_t pixelNumber);
 
 #endif

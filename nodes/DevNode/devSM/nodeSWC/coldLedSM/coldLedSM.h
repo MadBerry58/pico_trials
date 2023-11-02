@@ -3,8 +3,8 @@
 
 #include "pico/stdlib.h"
 
-uint8_t ledSM_init();
+uint8_t coldLedSM_init();
 
-uint8_t ledSM_run();
+uint8_t coldLedSM_run();
 
 #endif

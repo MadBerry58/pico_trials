@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.13)
+cmake_minimum_required(VERSION 3.12)
 # Enable debug symbols
 set(CMAKE_BUILD_TYPE Debug)
 set(DCMAKE_C_FLAGS "-Og -g3")

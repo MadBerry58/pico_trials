@@ -13,5 +13,7 @@ add_library(CommLibrary
 target_link_libraries(CommLibrary PUBLIC 
     pico_stdlib
     hardware_irq
+    hardware_spi
+    hardware_dma
     pio_can
     )

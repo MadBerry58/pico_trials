@@ -11,5 +11,6 @@ add_library(HardwareLibrary
 )
 
 target_link_libraries(HardwareLibrary PUBLIC 
+    PeripheralsLibrary
     PioLibrary
 )

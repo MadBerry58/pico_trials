@@ -41,6 +41,16 @@
         "type_traits": "c",
         "pushbuttonsm.h": "c",
         "dev_config.h": "c",
-        "controllogicsm.h": "c"
-    }
+        "controllogicsm.h": "c",
+        "ledsm.h": "c",
+        "spi.h": "c",
+        "time.h": "c",
+        "string.h": "c",
+        "candefinitions.h": "c",
+        "stdint.h": "c"
+    },
+    "cortex-debug.variableUseNaturalFormat": false,
+    "cmake.configureOnOpen": true,
+    "cmake.generator": "Unix Makefiles",
+    "cmake.parallelJobs": 0
 }

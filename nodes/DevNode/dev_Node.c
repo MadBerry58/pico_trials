@@ -5,6 +5,9 @@
 
 #define NODE_ID 1u //Node IDs wil be given by the user/configuration sw
 
+uint8_t messageBuffer = 0u;
+uint8_t messageSize   = 0u;
+
 int main()
 {
     uint32_t nodeError = 0u;
@@ -23,7 +26,7 @@ int main()
     // run_OS();
     while(1)
     {
-
+        network_read(&(messageBuffer), &(messageSize));
     }
     printf("End of program: %llu", nodeError);
 }

@@ -17,10 +17,6 @@
 #include "i2c/pio_i2c.h"
 #endif
 
-#ifdef PIO_QUADRATURE_ENCODER
-#include "quadrature_encoder/quadrature_encoder.h"
-#endif
-
 #ifdef PIO_SPI
 #include "spi/pio_spi.h"
 #endif

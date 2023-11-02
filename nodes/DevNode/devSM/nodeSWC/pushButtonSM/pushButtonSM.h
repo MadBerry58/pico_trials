@@ -24,7 +24,7 @@ typedef struct
 
     PushButtonState pushButtonState;        /* State machine state */
     
-    bool           *buttonPressed;          /* Output variable for button state */
+    bool            buttonPressed;          /* Output variable for button state */
     
     bool            prevButtonState;        /* SM-local previous state variable*/
     uint32_t        debounceTimeout_us;     /* SM-local momentary debounce timeout value */

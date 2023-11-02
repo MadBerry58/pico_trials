@@ -14,7 +14,7 @@ uint8_t init_mosfetControl(MOSFET_specs *mosfet)
     gpio_set_function(mosfet->controlPin, GPIO_FUNC_PWM);
 
     mosfet->config   = pwm_get_default_config();
-    mosfet->sliceNum = pwm_gpio_to_slice_num(mosfet->controlPin);
+    // mosfet->sliceNum = pwm_gpio_to_slice_num(mosfet->controlPin);
     
     mosfet->minPinHigh_ns = (
         mosfet->riseDelay_ns    +

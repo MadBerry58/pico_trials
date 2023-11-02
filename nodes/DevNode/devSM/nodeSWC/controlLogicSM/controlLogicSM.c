@@ -32,6 +32,7 @@ struct
   bool lightToggleRequested         :1;
   bool encoderPosition_updated      :1; 
   bool encoderPushButton_updated    :1;
+  bool multipressRequested          :1;
 } 
 notificationFlags = 
 {
@@ -39,15 +40,19 @@ notificationFlags =
   .targetSwitchRequested         = false,
   .patternCustomizationRequested = false,
   .lightToggleRequested          = false,
-  .encoderPushButton_updated     = false
+  .encoderPushButton_updated     = false,
+  .multipressRequested           = false
 };
 
 bool        encoderPushButton_status_prev       = false;
+bool        encoderPushButton_status            = false;
 
+uint8_t     encoderPosition                     = 0u;
 uint8_t     encoderPosition_old                 = 0u;
 uint8_t     encoderDelta                        = 0u;
 uint8_t     lastPatternIndex                    = 0u;
 uint8_t     lastPatternModifier                 = 0u;
+uint8_t     multipressCounter                   = 0u;
 
 uint32_t    encoderPushButton_timeOfPressing    = 0u;
 uint32_t    encoderPushButton_timePressed       = 0u;
@@ -65,6 +70,7 @@ uint32_t    prevNotificationTime                = MS_TO_US(1000u);
 /* Data input functionality */
 static inline uint8_t checkUpdate_pushButtonSM()
 {
+  uint8_t retVal = 0;
   if(encoderPushButton_status_prev != encoderPushButton_status)               /* Button state changed */
   {
     if(BUTTON_PRESSED == encoderPushButton_status)                            /* Button pressed */
@@ -73,17 +79,30 @@ static inline uint8_t checkUpdate_pushButtonSM()
     }
     else                                                                      /* Button released */
     {/* Check the pressed time, highest to lowest */
-      if      (MS_TO_US(SWITCH_TIME_MS)    <= encoderPushButton_timePressed)  /* Button pressed for SWITCH_TIME_MS */
+      if(MS_TO_US(SWITCH_TIME_MS           ) <= encoderPushButton_timePressed)/* Button pressed for SWITCH_TIME_MS */
       {/* Switch light control */
         notificationFlags.targetSwitchRequested = true;                       /*  */
       }
-      else if (MS_TO_US(CUSTOMIZE_PATTERN_TIME_MS) <= encoderPushButton_timePressed)  /* Button pressed for CUSTOMIZE_TIME_MS */
+      else 
+      if(MS_TO_US(CUSTOMIZE_PATTERN_TIME_MS) <= encoderPushButton_timePressed)/* Button pressed for CUSTOMIZE_TIME_MS */
       {/* Customize pattern */
         notificationFlags.patternCustomizationRequested = true;               /* Local customization request */
       }
-      else                                                                    /*  */
-      {/* Turn off */
-        notificationFlags.lightToggleRequested = true;                        /* Local lights off request */
+      else 
+      if(MS_TO_US(MULTITAP_TIMEOUT_MS      ) >= encoderPushButton_timePressed)/*  */
+      {
+        if(false == notificationFlags.multipressRequested)
+        {
+          encoderPushButton_multipressTimeout = time_us_32() + MULTITAP_TIMEOUT_MS;
+        }
+        else
+        {
+          ++multipressCounter;
+        }
+      }
+      else
+      {
+        
       }
     }
   }
@@ -97,10 +116,12 @@ static inline uint8_t checkUpdate_pushButtonSM()
   {
     /* Button is not pressed */
   }
+  return retVal;
 }
 
 static inline uint8_t checkUpdate_encoderSM()
 {
+  uint8_t retVal = 0;
   if(encoderPosition_old != encoderPosition)
   {
     /* uint8 data type ensures wrap around the value 255 */
@@ -112,27 +133,32 @@ static inline uint8_t checkUpdate_encoderSM()
   {
     /* no pattern update */
   }
+  return retVal;
 }
 
 /* Data output functionality*/
 static inline uint8_t output_RGB_strip()
 {
-
+  uint8_t retVal = 0;
+  return retVal;
 }
 
 static inline uint8_t output_LED_strip()
 {
-
+  uint8_t retVal = 0;
+  return retVal;
 }
 
 static inline uint8_t output_LED_ring ()
 {
-
+  uint8_t retVal = 0;
+  return retVal;
 }
 
 /* Logic inferance functionality */
 static inline uint8_t infereOutputs()
 {
+  uint8_t retVal = 0;
   switch(UI_state)
   {
     case OFF: /* Lights are off */
@@ -141,11 +167,11 @@ static inline uint8_t infereOutputs()
         switch(target)                                                    /* determine last used light type */
         {
           case LED_CONTROL:                                               /* last light type was an RGB pattern */
-            output_LED_strip(TURN_ON);
+            // output_LED_strip(TURN_ON);
           break;
 
           case RGB_CONTROL:                                               /* last light type was white LED light */
-            output_RGB_strip(TURN_ON);
+            // output_RGB_strip(TURN_ON);
           break;
 
           default:
@@ -168,11 +194,11 @@ static inline uint8_t infereOutputs()
         switch(target) /* determine active light type */
         {
           case LED_CONTROL: /* last light type is an RGB pattern */
-            output_LED_strip(TURN_OFF);
+            // output_LED_strip(TURN_OFF);
           break;
 
           case RGB_CONTROL: /* last light type is white LED light */
-            output_RGB_strip(TURN_OFF);
+            // output_RGB_strip(TURN_OFF);
           break;
 
           default:
@@ -188,14 +214,14 @@ static inline uint8_t infereOutputs()
         switch(target) /* determine active light type */
         {
           case LED_CONTROL: /* last light type is an RGB pattern */
-            output_LED_strip(TURN_OFF);
-            output_RGB_strip(TURN_ON);
+            // output_LED_strip(TURN_OFF);
+            // output_RGB_strip(TURN_ON);
             target = RGB_CONTROL;
           break;
 
           case RGB_CONTROL: /* last light type is white LED light */
-            output_RGB_strip(TURN_OFF);
-            output_LED_strip(TURN_ON);
+            // output_RGB_strip(TURN_OFF);
+            // output_LED_strip(TURN_ON);
             target = LED_CONTROL;
           break;
 
@@ -217,10 +243,6 @@ static inline uint8_t infereOutputs()
     case MODIFY_COLOR:
       if(time_us_32() <= uiCustomizationTimeout)
       {
-
-      }
-      else if()
-      {
         
       }
       else
@@ -234,17 +256,53 @@ static inline uint8_t infereOutputs()
       {
 
       }
-      else if()
-      {
-
-      }
       else
       {
         UI_state = IDLE;
       }
     break;
-  }
 
+    case NO_OF_STATES:
+    default:
+      break;
+  }
+  
+  return retVal;
+}
+
+/* State machine functionality */
+uint8_t controlLogic_devSM_init()
+{
+  uint8_t retVal = 0;
+  /* Check if all the SWC are initialized */
+  return retVal;
+}
+
+uint8_t controlLogic_devSM_run()
+{
+  uint8_t retVal = 0u;
+
+  /* Check for SWC updates */
+  checkUpdate_encoderSM   ();
+  checkUpdate_pushButtonSM();
+
+  infereOutputs           ();
+
+  output_LED_ring         ();
+  output_RGB_strip        ();
+  output_LED_strip        ();
+
+  /* Reset notification flags */
+  // notificationFlags = { 0, 0, 0, 0, 0, 0 };
+  
+  return retVal;
+}
+
+/* Mentions:
+    (1) target data type is best left node specific, as to allow user customization
+ */
+
+/* Explanations:  */
   /* 
   Light switching logic
 
@@ -278,40 +336,3 @@ static inline uint8_t infereOutputs()
     Long   Press:   No effect
     Rotate:         Change pattern - <send update message>
    */
-}
-
-/* State machine functionality */
-uint8_t controlLogic_devSM_init()
-{
-  /* Check if all the SWC are initialized */
-}
-
-uint8_t controlLogic_devSM_run()
-{
-  uint8_t retVal;
-
-  /* Update Flags */
-  bool updateRGB_strip = false;
-  bool updateLED_strip = false;
-  bool updateRGB_ring  = false;
-
-  /* Check for SWC updates */
-  checkUpdate_encoderSM   ();
-  checkUpdate_pushButtonSM();
-
-  infereOutputs           ();
-
-  output_LED_ring         ();
-  output_RGB_strip        ();
-  output_LED_strip        ();
-
-  /* Reset notification flags */
-  notificationFlags = {0,0,0,0,0};
-}
-
-/* Mentions:
-    (1) target data type is best left node specific, as to allow user customization
- */
-
-/* Explanations: 
-

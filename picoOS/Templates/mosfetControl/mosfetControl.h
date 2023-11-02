@@ -7,11 +7,7 @@
 typedef struct
 {
     uint8_t     controlPin;
-    uint8_t     sliceNum;
     uint8_t     polarity; /* Allow for both P and N channel PWM control */
-
-    uint8_t     stepNumber;
-    uint16_t   *stepPercentages;
     
     uint16_t    riseDelay_ns;
     uint16_t    riseTime_ns;

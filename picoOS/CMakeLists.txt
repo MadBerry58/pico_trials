@@ -12,6 +12,7 @@ add_library(picoOS
 
 target_link_libraries(picoOS PUBLIC
     pico_multicore
+
     CommLibrary
     ErrorLibrary
     FlashLibrary

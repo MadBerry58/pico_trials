@@ -161,4 +161,5 @@ CommSM_Error commSM_request(uint8_t request)
     SM_request = request;
     commSM_state_old = commSM_state;
     commSM_state = COMM_SM_S_REQUEST_RECEIVED;
+    return 0;
 }

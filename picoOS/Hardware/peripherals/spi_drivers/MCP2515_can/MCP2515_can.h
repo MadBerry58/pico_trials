@@ -3,10 +3,8 @@
 
 #include "canDefinitions.h"
 #include "icDefinitions.h"
-#include "hardware/spi.h"
-#include "pico/time.h"
 #include "pico/stdlib.h"
-#include "boards/pico.h"
+#include "hardware/spi.h"
 
 typedef enum {
     MCP2515_E_OK              ,
@@ -24,11 +22,11 @@ typedef enum {
 } MCP2515_Error;
 
 typedef struct  {
-    spi_inst_t   *SPI_CHANNEL;
     uint8_t       CS_PIN;
     uint8_t       TX_PIN;
     uint8_t       RX_PIN;
     uint8_t       SCK_PIN;
+    uint8_t       INT_PIN;
     uint32_t      SPI_CLOCK;
 
     MCP2515_Error  error;

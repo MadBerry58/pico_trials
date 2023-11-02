@@ -20,7 +20,7 @@ static inline uint32_t urgb_u32(uint8_t r, uint8_t g, uint8_t b) {
             ((uint32_t) (g) << 16) |
             ((uint32_t) (r) << 8 ) |
             ((uint32_t) (b) << 0 ) ;
-}
+} 
 
 ws2812_sm_error init_ws2812(ws2812_sm* sm_data) 
 {
@@ -70,183 +70,12 @@ ws2812_sm_error init_ws2812(ws2812_sm* sm_data)
     return retVal;
 }
 
-static inline void ws2812_loadPattern(int sm, uint32_t *pattern, uint16_t pixelNumber)
+void ws2812_loadPattern(int sm, uint32_t *pattern, uint16_t pixelNumber)
 {
     ///TODO: add handling for transfer in progress cases
     /* Dedicate DMA channels */
-    dma_channel_set_read_addr(dma_chan, pattern, false);
-    dma_channel_set_write_addr(dma_chan, &pio1_hw->txf[sm], false);
-    dma_channel_set_trans_count(dma_chan, pixelNumber, true);
+    dma_channel_set_read_addr   (dma_chan, pattern,             false);
+    dma_channel_set_write_addr  (dma_chan, &pio1_hw->txf[sm],   false);
+    dma_channel_set_trans_count (dma_chan, pixelNumber,         true );
     // pio_sm_put_blocking(pio, sm, pattern[i]);
-}
-
-
-ws2812_sm_error run_ws2812 (ws2812_sm* sm_data)
-{
-    ws2812_sm_error retVal = SM_WS2812_E_OK;
-    sm_data->loopControl = true;
-
-    while(sm_data->loopControl)
-    {
-        switch (sm_data->sm_state)
-        {
-        case SM_WS2812_UNINIT:
-            /* SM not initialized. return fault */
-
-            retVal = SM_WS2812_E_UNINITIALIZED;
-            sm_data->loopControl = false;
-
-            break;
-        
-        case SM_WS2812_READY:
-            sm_data->loopControl = true;
-            sm_data->sm_state = SM_WS2812_RUNNING;
-            break;
-
-        case SM_WS2812_RUNNING:
-            /* start the state machine */            
-            if(true == sm_data->updateFlag)
-            {
-                if(SM_WS2812_R_NONE != sm_data->sm_request)
-                {
-                    switch(sm_data->sm_request)
-                    {
-                        case SM_WS2812_R_RESET:
-                            sm_data->sm_state = SM_WS2812_UNINIT;
-                            break;
-
-                        case SM_WS2812_R_STOP:
-                            sm_data->sm_state = SM_WS2812_STOPPED;
-                            break;
-                        
-                        case SM_WS2812_R_START:
-                            // sm_data->sm_state = SM_QUADRATURE_RUNNING;
-                            retVal = SM_WS2812_E_REQUEST_SEQUENCE;
-                            break;
-                        
-                        default:
-                            retVal = SM_WS2812_E_UNKNOWN_REQUEST;
-                            break;
-                    }
-                    // sm_data->loopControl = true;
-                    sm_data->sm_request = SM_WS2812_R_NONE;
-                }
-                else
-                {
-                    /* Read sm data */
-                    ws2812_loadPattern( sm_data->smID, 
-                                        sm_data->patternLocation->patternList[sm_data->patternIndex], 
-                                        sm_data->patternLocation->patternSize
-                        );
-                }
-            }
-            else
-            {
-                /* No pattern update */
-                sm_data->notificationFlag = SM_WS2812_N_NONE;
-                // sm_data->sm_state         = SM_QUADRATURE_RUNNING;
-                sm_data->loopControl = false;
-                retVal = SM_WS2812_E_OK;
-            }
-            break;
-        
-        case SM_WS2812_STOPPED:
-            /* Stop SM */
-            if(SM_WS2812_R_NONE != sm_data->sm_request)
-            {
-                switch(sm_data->sm_request)
-                {
-                    case SM_WS2812_R_RESET:
-                        sm_data->sm_state = SM_WS2812_UNINIT;
-                        sm_data->loopControl = false;
-                        break;
-
-                    case SM_WS2812_R_STOP:
-                        sm_data->notificationFlag = SM_WS2812_N_LOW_PRIO_ERROR;
-                        sm_data->sm_state = SM_WS2812_STOPPED;
-                        sm_data->loopControl = false;
-                        retVal = SM_WS2812_E_REQUEST_SEQUENCE;
-                        break;
-                    
-                    case SM_WS2812_R_START:
-                        sm_data->sm_state    = SM_WS2812_RUNNING;
-                        sm_data->loopControl = true;
-                        break;
-                    
-                    default:
-                        sm_data->sm_state = SM_WS2812_STOPPED;
-                        sm_data->loopControl = false;
-                        sm_data->notificationFlag = SM_WS2812_N_MEDIUM_PRIO_ERROR;
-                        retVal = SM_WS2812_E_UNKNOWN_REQUEST;
-                        break;
-                }
-                /* Clear out host request */
-                sm_data->sm_request = SM_WS2812_R_NONE;
-            }
-            else
-            {
-                /* SM remains stopped */
-                sm_data->sm_state = SM_WS2812_STOPPED;
-                sm_data->loopControl = false;
-                retVal = SM_WS2812_E_OK;
-            }
-            break;
-
-        case SM_WS2812_FAULT:
-            /* return error message */
-            if(SM_WS2812_R_NONE != sm_data->sm_request)
-            {
-                switch(sm_data->sm_request)
-                    {
-                        case SM_WS2812_R_RESET:
-                            sm_data->sm_state         = SM_WS2812_UNINIT;
-                            sm_data->loopControl      = false;
-                            break;
-
-                        case SM_WS2812_R_STOP:
-                            sm_data->sm_state         = SM_WS2812_FAULT;
-                            sm_data->loopControl      = false;
-                            
-                            sm_data->notificationFlag = SM_WS2812_N_LOW_PRIO_ERROR;
-                            retVal = SM_WS2812_E_REQUEST_SEQUENCE;
-                            break;
-                        
-                        case SM_WS2812_R_START:
-                            sm_data->sm_state         = SM_WS2812_RUNNING;
-                            sm_data->loopControl      = true;
-                            
-                            sm_data->notificationFlag = SM_WS2812_N_LOW_PRIO_ERROR;
-                            retVal = SM_WS2812_E_STARTED_FROM_FAULT;
-                            break;
-                        
-                        default:
-                            sm_data->sm_state    = SM_WS2812_STOPPED;
-                            sm_data->loopControl = false;
-
-                            sm_data->notificationFlag = SM_WS2812_N_MEDIUM_PRIO_ERROR;
-                            retVal = SM_WS2812_E_UNKNOWN_REQUEST;
-                            break;
-                    }
-            }
-            else
-            {
-                sm_data->sm_state    = SM_WS2812_FAULT;
-                sm_data->loopControl = false;
-
-                sm_data->notificationFlag = SM_WS2812_N_LOW_PRIO_ERROR;
-                retVal = SM_WS2812_E_FAULT_NOT_RESOLVED;            
-            }
-            break;
-
-        default:
-            /* Unknown request  */
-            sm_data->loopControl      = false;
-            sm_data->notificationFlag = SM_WS2812_N_HIGH_PRIO_ERROR;
-            sm_data->sm_state         = SM_WS2812_FAULT;
-            retVal                    = SM_WS2812_E_UNKNOWN_STATE;
-            break;
-        }
-    }
-
-    return retVal;
 }

@@ -8,8 +8,11 @@ add_library(devSM_lib
     nodeSWC/encoderSM/encoderSM.h
     nodeSWC/encoderSM/encoderSM.c
 
-    nodeSWC/ledSM/ledSM.h
-    nodeSWC/ledSM/ledSM.c
+    nodeSWC/warmLedSM/warmLedSM.h
+    nodeSWC/warmLedSM/warmLedSM.c
+
+    nodeSWC/coldLedSM/coldLedSM.h
+    nodeSWC/coldLedSM/coldLedSM.c
 
     nodeSWC/lightSensSM/lightSensSM.h
     nodeSWC/lightSensSM/lightSensSM.c

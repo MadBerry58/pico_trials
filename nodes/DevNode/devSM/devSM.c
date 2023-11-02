@@ -1,49 +1,48 @@
 #include "devSM.h"
-
-void internalLogic_devNodeSM();
+#include "../dev_config.h"
 
 void core_devNodeSM()
 {
     uint8_t error = 0;
+    
     /* initialize components */
-    if(SM_QUADRATURE_E_OK   != init_quadrature_encoder_sm(&quadratureSM))
-    {
-        error = 1;
-    }
-    else
-    if(SM_WS2812_E_OK       != init_ws2812(&ws2812SM))
-    {
-        error = 1;
-        printf("RGB PIO init error %d\n", error);
-    }
-    else
-    {
-        /* All components initialized correctly */
-        error = 0;
-    }
+    pushButtonSM_init          ();
+    // tempSensSM_init         ();
+    controlLogic_devSM_init();
+    // rgb_ringSM_init         ();
+    // rgb_stripSM_init        ();
+    // warmledSM_init             ();
+    // coldledSM_init             ();
+    // motorControlSM_init     ();
+    gpio_init(PICO_DEFAULT_LED_PIN);
+    gpio_set_dir(PICO_DEFAULT_LED_PIN, GPIO_OUT);
+    gpio_put(PICO_DEFAULT_LED_PIN, 1);
+
     
     /* Main sequence */
-    ///TODO: replace with scheduler functionality
     while (1) {
         /* read inputs */
-        run_quadrature_encoder_sm(&quadratureSM);
+        pushButtonSM_run          ();
+        // tempSensSM_run         ();
         
         /* input/output logic */
-        internalLogic_devNodeSM();
+        controlLogic_devSM_run();
 
         /* update outputs */
-        run_ws2812(&ws2812SM);
+        // rgb_ringSM_run         ();
+        // rgb_stripSM_run        ();
+        coldLedSM_run             ();
+        warmLedSM_run             ();
+        // motorControlSM_run     ();
         
-        sleep_ms(CYCLE_TIME);
+        ///TODO: replace with scheduler functionality
+        sleep_ms                    (CYCLE_TIME);
+        // gpio_xor_mask(1u << PICO_DEFAULT_LED_PIN);
     }
+    
     /* IDEA: inter-component comm: data+update_notification
         -consume notification   - reader resets the update notification flag on reading data
         -cycle reset            - notification flags are reset at the end of the cycle
         -persist                - notification flag is reset by the emmiter when value remains unchanged
     */
-}
-
-void internalLogic_devNodeSM()
-{
-    
 }
