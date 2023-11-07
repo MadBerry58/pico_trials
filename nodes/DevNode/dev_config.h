@@ -14,8 +14,9 @@
 #define WARM_LED_PWM_PIN            5 /* cold LED PWM control pin */
 #define WARM_LED_PWM_
 
-#define ENCODER_AB_PINS             16
-#define ENCODER_C_PIN               18 /* GPIO18 */
+#define ENCODER_AB_PINS             14
+#define ENCODER_C_PIN               13
+#define ENCODER_STEP_RATE   0 /* 0 - unlimited rate */
 
 #define CYCLE_TIME                  50u /* ms of sleep time between while cycles */
 
@@ -39,26 +40,6 @@
 /************************************************
  * State machines
  ************************************************/
-
-
-
-/**
- * @brief 
- * 
- */
-// quadrature_encoder_sm quadratureSM = {
-//     .smID             = 0,
-//     .abPin            = ENCODER_AB_PINS,
-//     .buttonPin        = ENCODER_C_PIN,
-//     .buttonOutput     = &buttonState,
-//     .rotationOutput   = &encoderPosition,
-//     .loopControl      = false,
-//     .prevButton       = 0,
-//     .prevRotation     = 0,
-//     .notificationFlag = SM_QUADRATURE_N_NONE,
-//     .sm_state         = SM_QUADRATURE_UNINIT,
-//     .sm_request       = SM_QUADRATURE_R_NONE
-// };
 
 // /**
 //  * @brief 

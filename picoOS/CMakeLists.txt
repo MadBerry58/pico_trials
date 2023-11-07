@@ -15,10 +15,10 @@ target_link_libraries(picoOS PUBLIC
 
     CommLibrary
     ErrorLibrary
+    TemplateLibrary
     FlashLibrary
     HardwareLibrary
     SchedulerLibrary
     TimerLibrary
     WatchdogLibrary
-    TemplateLibrary
 )

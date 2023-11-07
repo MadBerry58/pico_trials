@@ -11,7 +11,6 @@
 #include "nodeSWC/pushButtonSM/pushButtonSM.h"
 #include "nodeSWC/encoderSM/encoderSM.h"
 
-
 void core_devNodeSM();
 
 #endif

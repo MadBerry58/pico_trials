@@ -2,13 +2,12 @@
 #include "../dev_config.h"
 
 void core_devNodeSM()
-{
-    uint8_t error = 0;
-    
+{    
     /* initialize components */
     pushButtonSM_init          ();
     // tempSensSM_init         ();
     controlLogic_devSM_init();
+    init_encoderSM_swc();
     // rgb_ringSM_init         ();
     // rgb_stripSM_init        ();
     // warmledSM_init             ();
@@ -17,12 +16,13 @@ void core_devNodeSM()
     gpio_init(PICO_DEFAULT_LED_PIN);
     gpio_set_dir(PICO_DEFAULT_LED_PIN, GPIO_OUT);
     gpio_put(PICO_DEFAULT_LED_PIN, 1);
-
     
     /* Main sequence */
     while (1) {
         /* read inputs */
         pushButtonSM_run          ();
+        run_encoderSM_swc();
+
         // tempSensSM_run         ();
         
         /* input/output logic */

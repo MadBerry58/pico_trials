@@ -4,12 +4,13 @@
 #include "pico/time.h"
 #include "boards/pico.h"
 
-#define SPI_DMA_ACTIVE             false
+/* Compile flags - Comment to deactivate*/
+// #define SPI_DMA_ACTIVE    /* Changes the SPI interface to asynchronous DMA data transfers over SPI */
 
 #define CAN_DMA_CTRL               0u
 #define CAN_DMA_RX                 1u
 #define CAN_DMA_TX                 2u
-#define CAN_DMA_MASK               0b111u
+#define CAN_DMA_MASK           0b111u
 
 #define SPI_PERIPHERAL             0u // SPI peripheral module - will depend on the pin arrangement
 
@@ -56,28 +57,42 @@ struct RXBn_REGS {
 
 MASK    masks  [] = {MASK0, MASK1};
 RXF     filters[] = {RXF0, RXF1, RXF2, RXF3, RXF4, RXF5};
+
 uint8_t zeros[14] = {0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u};
 uint8_t tempMsg   = 0u;
 
-/* DMA optimization data */
-
-typedef struct {
-    uint32_t                    read_address; 
-    uint32_t                    write_address; 
-    uint32_t                    transfer_count; 
-    dma_channel_bitwise_config  DMA_config;
-} dma_fullConfig;
-
-uint8_t resetInstructions[] =
+/***********************************************************************************/
+/****************************** DMA optimization data ******************************/
+enum dmaInstructionIndex
 {
-    MCP_TXB0CTRL, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-    MCP_TXB1CTRL, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-    MCP_TXB2CTRL, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-    MCP_RXB0CTRL, 0,
-    MCP_RXB1CTRL, 0,
-    MCP_CANINTE,  resetMask
+    INSTRUCTION_INDEX_RESET = 0,
 };
-uint8_t resetInstructions_size = sizeof(resetInstructions) / sizeof(resetInstructions[0]);
+
+uint8_t reset_instruction[] =
+{
+    INSTRUCTION_RESET
+};
+
+uint8_t postResetSetup[] =
+{
+    INSTRUCTION_BITMOD, MCP_RXB0CTRL, (RXBnCTRL_RXM_MASK|RXB0CTRL_BUKT|RXB0CTRL_FILHIT_MASK), (RXBnCTRL_RXM_STDEXT|RXB0CTRL_BUKT|RXB0CTRL_FILHIT),
+    INSTRUCTION_BITMOD, MCP_RXB1CTRL,               (RXBnCTRL_RXM_MASK|RXB1CTRL_FILHIT_MASK),               (RXBnCTRL_RXM_STDEXT|RXB1CTRL_FILHIT),
+    INSTRUCTION_BITMOD,  MCP_CANCTRL,                                        (CANCTRL_REQOP),                              (CANCTRL_REQOP_CONFIG),
+    INSTRUCTION_WRITE,  MCP_RXF0SIDH, 
+    INSTRUCTION_WRITE,  MCP_RXF1SIDH, 
+    INSTRUCTION_WRITE,  MCP_RXF2SIDH, 
+    INSTRUCTION_WRITE,  MCP_RXF3SIDH, 
+    INSTRUCTION_WRITE,  MCP_RXF4SIDH, 
+    INSTRUCTION_WRITE,  MCP_RXF5SIDH, 
+    MCP_TXB0CTRL,       0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    MCP_TXB1CTRL,       0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    MCP_TXB2CTRL,       0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    MCP_RXB0CTRL,       0,
+    MCP_RXB1CTRL,       0,
+    MCP_CANINTE,        resetMask
+};
+
+uint8_t postResetSetup_size = sizeof(postResetSetup) / sizeof(postResetSetup[0]);
 
 uint8_t modify_instruction_dma[4] = { 
     INSTRUCTION_BITMOD, /* Device instruction to execute a masked write */ 
@@ -95,8 +110,17 @@ uint8_t read_instruction_dma  [2] = {
     INSTRUCTION_READ,   /* Device instruction to read data from the target register */   
     0u                  /* Target register */
 };
+
+uint8_t readStatus_instruction_dma = INSTRUCTION_READ_STATUS;
 uint8_t readBuffer[32u];
 uint8_t readCount;
+
+dma_channel_config canDMA_write_config;
+dma_channel_config canDMA_read_config;
+dma_channel_config canDMA_ctrl_config;
+
+/****************************** DMA optimization data ******************************/
+/***********************************************************************************/
 
 uint8_t MCP2515_IC_Status = 0u;
 
@@ -135,10 +159,6 @@ static inline void endSPI         (MCP2515_instance *instance)
     // asm volatile("nop \n nop \n nop");
 }
 
-dma_channel_config canDMA_write_config;
-dma_channel_config canDMA_read_config;
-dma_channel_config canDMA_ctrl_config;
-
 MCP2515_Error MCP2515_init(MCP2515_instance *instance)
 {
     MCP2515_Error retVal = MCP2515_E_OK;
@@ -159,12 +179,11 @@ MCP2515_Error MCP2515_init(MCP2515_instance *instance)
 
     endSPI(instance);
 
-#if (SPI_DMA_ACTIVE == true)
     /* Configure dedicate DMA channel */
     if(/* Check if channels are available */
         (dma_channel_is_claimed(CAN_DMA_CTRL)) ||
-        (dma_channel_is_claimed(CAN_DMA_TX  )) ||
-        (dma_channel_is_claimed(CAN_DMA_RX  ))
+        (dma_channel_is_claimed(CAN_DMA_RX  )) ||
+        (dma_channel_is_claimed(CAN_DMA_TX  ))
     )
     {
         /* OS channels cannot be used by other SWC */
@@ -175,43 +194,53 @@ MCP2515_Error MCP2515_init(MCP2515_instance *instance)
         /* Claim channels */
         dma_claim_mask(CAN_DMA_MASK);
 
-        /* RX DMA Channel config */
+        /* SpiRx DMA Channel config */
         canDMA_read_config = dma_channel_get_default_config(CAN_DMA_RX);
         channel_config_set_transfer_data_size   (  &(canDMA_read_config         ), DMA_SIZE_8);
-        channel_config_set_dreq                 (  &(canDMA_read_config         ), spi_get_dreq(spi_default, false));
+        channel_config_set_dreq                 (  &(canDMA_read_config         ), DREQ_SPI0_RX);
         channel_config_set_read_increment       (  &(canDMA_read_config         ), false);
         channel_config_set_write_increment      (  &(canDMA_read_config         ), true);
- 
-        dma_channel_set_config      (CAN_DMA_RX,   &(canDMA_read_config         ), false);
-        dma_channel_set_write_addr  (CAN_DMA_RX,   &(MCP2515_IC_Status          ), false);
-        dma_channel_set_read_addr   (CAN_DMA_RX,   &(spi_get_hw(spi_default)->dr), false);
-        dma_channel_set_trans_count (CAN_DMA_RX,                               1u, false);
+        dma_channel_configure(
+            CAN_DMA_RX,
+            &(canDMA_read_config),
+            NULL,
+            &(spi_get_hw(spi_default)->dr),
+            0u,
+            false
+        );
 
-        /* TX DMA Channel config */
+        /* SpiTx DMA Channel config */
         canDMA_write_config = dma_channel_get_default_config(CAN_DMA_TX);
         channel_config_set_transfer_data_size   (  &(canDMA_write_config        ), DMA_SIZE_8);
-        channel_config_set_dreq                 (  &(canDMA_write_config        ), spi_get_dreq(spi_default, true));
+        channel_config_set_dreq                 (  &(canDMA_write_config        ), DREQ_SPI0_TX);
         channel_config_set_read_increment       (  &(canDMA_write_config        ), true);
         channel_config_set_write_increment      (  &(canDMA_write_config        ), false);
+        dma_channel_configure(
+            CAN_DMA_TX,
+            &(canDMA_write_config),
+            &(spi_get_hw(spi_default)->dr),
+            NULL,
+            0u,
+            false
+        );
 
-        dma_channel_set_config      (CAN_DMA_TX,   &(canDMA_write_config        ), false);
-        dma_channel_set_write_addr  (CAN_DMA_TX,   &(spi_get_hw(spi_default)->dr), false);
-        dma_channel_set_read_addr   (CAN_DMA_TX,                             NULL, false);
-        dma_channel_set_trans_count (CAN_DMA_TX,                               0u, false);
-
-        /* TX DMA Channel config */
+        /* Control DMA Channel config */
         canDMA_ctrl_config = dma_channel_get_default_config(CAN_DMA_CTRL);
         channel_config_set_transfer_data_size   (  &(canDMA_ctrl_config         ), DMA_SIZE_32);
-        channel_config_set_dreq                 (  &(canDMA_ctrl_config         ), spi_get_dreq(spi_default, true));
         channel_config_set_read_increment       (  &(canDMA_ctrl_config         ), true);
-        channel_config_set_write_increment      (  &(canDMA_ctrl_config         ), false);
+        channel_config_set_write_increment      (  &(canDMA_ctrl_config         ), true);
+        dma_channel_configure(
+            CAN_DMA_CTRL,
+            &(canDMA_ctrl_config),
+            NULL,
+            NULL,
+            0u,
+            false
+        );
 
-        dma_channel_set_config      (CAN_DMA_CTRL, &(canDMA_ctrl_config         ), false);
-        dma_channel_set_write_addr  (CAN_DMA_CTRL,                           NULL, false);
-        dma_channel_set_read_addr   (CAN_DMA_CTRL,                           NULL, false);
-        dma_channel_set_trans_count (CAN_DMA_CTRL,                             0u, false);
+        dma_start_channel_mask((1u << CAN_DMA_RX) | (1u << CAN_DMA_TX) | (1u << CAN_DMA_CTRL));
     }
-#endif
+
     printf("Comm Initialized\n");
     return retVal;
 }
@@ -259,15 +288,19 @@ MCP2515_Error MCP2515_reset(MCP2515_instance *instance)
         }
     }
 
+#ifdef SPI_DMA_ACTIVE
+    // gpio_set_function   (instance->CS_PIN,      GPIO_FUNC_SPI);
+#endif
+
     return MCP2515_E_OK;
 }
 
 void readRegisters(MCP2515_instance *instance, const MCP2515_reg reg, uint8_t *values, const uint8_t data_length)
 {///INFO: single registry read has been removed. same functionality can be used with data_length == 1u
 
-    uint8_t read_instruction[2] = { INSTRUCTION_READ, reg};
     startSPI(instance);
-
+    
+    uint8_t read_instruction[2] = { INSTRUCTION_READ, reg};
     spi_write_blocking  (spi_default, read_instruction, 2);
     spi_read_blocking   (spi_default, 0x00, values, data_length);
 
@@ -282,29 +315,6 @@ void setRegisters(MCP2515_instance *instance, const MCP2515_reg  reg, uint8_t *v
 
     /* Send write instruction */
     spi_write_blocking(spi_default, write_instruction, 2);
-    
-    /* Send new values */
-    spi_write_blocking(spi_default, values, data_length);
-
-    endSPI(instance);
-}
-
-void readRegisters_DMA(MCP2515_instance *instance, const MCP2515_reg reg, uint8_t *values, const uint8_t data_length)
-{///INFO: single registry read has been removed. same functionality can be used with data_length == 1u
-    startSPI(instance);
-    
-    spi_write_blocking  (spi_default, read_instruction_dma, 2);
-    spi_read_blocking   (spi_default, 0x00, values, data_length);
-
-    endSPI(instance);
-}
-
-void setRegisters_DMA(MCP2515_instance *instance, const MCP2515_reg  reg, uint8_t *values,   const uint8_t  data_length)
-{
-    startSPI(instance);
-
-    /* Send write instruction */
-    spi_write_blocking(spi_default, write_instruction_dma, 2);
     
     /* Send new values */
     spi_write_blocking(spi_default, values, data_length);
@@ -338,10 +348,20 @@ uint8_t getStatus(MCP2515_instance *instance)
 
     startSPI(instance);
 
+#ifndef SPI_DMA_ACTIVE
     uint8_t instruction = INSTRUCTION_READ_STATUS;
     spi_write_blocking  (spi_default, &instruction, 1);
     spi_read_blocking   (spi_default, 0x00, &ret, 1);
+#else
+    dma_channel_set_read_addr   (CAN_DMA_TX, &(readStatus_instruction_dma), false);
+    dma_channel_set_trans_count (CAN_DMA_TX,                            1u,  true);
 
+    // dma_channel_set_write_addr  (CAN_DMA_RX,                        &(ret), false);
+    // dma_channel_set_trans_count (CAN_DMA_RX,                            1u, false);
+
+    // dma_start_channel_mask((1u << CAN_DMA_TX) | (1u << CAN_DMA_RX));
+    spi_read_blocking   (spi_default, 0x00, &ret, 1);
+#endif
     endSPI  (instance);
 
     return ret;
@@ -1044,9 +1064,8 @@ MCP2515_Error MCP2515_sendMessage(MCP2515_instance *instance, const can_frame *f
 MCP2515_Error MCP2515_readMessage_Buff(MCP2515_instance *instance, const RXBn rxbn, can_frame *frame)
 {
     MCP2515_Error retVal = MCP2515_E_UNKNOWN;
-    uint8_t      dlc    = 0u;
     uint32_t     id     = 0u;
-    
+    uint8_t      dlc    = 0u;
     uint8_t      tbufdata[5];
 
     /* Bind selected buffer register array*/

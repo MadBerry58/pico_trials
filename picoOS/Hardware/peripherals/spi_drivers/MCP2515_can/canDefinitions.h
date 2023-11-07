@@ -30,12 +30,6 @@ typedef uint32_t canid_t;
 #define CAN_MAX_DLC     8U
 #define CAN_MAX_DLEN    8U
 
-typedef struct {
-    canid_t can_id;  /* 32 bit CAN_ID + EFF/RTR/ERR flags */
-    uint8_t can_dlc; /* frame payload length in byte (0 .. CAN_MAX_DLEN) */
-    uint8_t data[CAN_MAX_DLEN];
-} can_frame;
-
 #define CANCTRL_REQOP   0xE0
 #define CANCTRL_ABAT    0x10
 #define CANCTRL_OSM     0x08
@@ -114,5 +108,11 @@ typedef enum {
     CANCTRL_REQOP_CONFIG     = 0x80,
     CANCTRL_REQOP_POWERUP    = 0xE0
 } CANCTRL_REQOP_MODE;
+
+typedef struct {
+    canid_t can_id;  /* 32 bit CAN_ID + EFF/RTR/ERR flags */
+    uint8_t can_dlc; /* frame payload length in byte (0 .. CAN_MAX_DLEN) */
+    uint8_t data[CAN_MAX_DLEN];
+} can_frame;
 
 #endif /* CAN_H_ */

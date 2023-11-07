@@ -3,6 +3,7 @@ add_library(spi_can
         MCP2515_can.h
         icDefinitions.h
         canDefinitions.h
+        Frame_IDs.h
 )
 
 target_link_libraries(spi_can PUBLIC

@@ -1,5 +1,5 @@
-#ifndef OS_PORT_TYPES_H
-#define OS_PORT_TYPES_H
+#ifndef OS_INTERNAL_MSG_TYPES_H
+#define OS_INTERNAL_MSG_PORT_TYPES_H
 
 #include <stdio.h>
 

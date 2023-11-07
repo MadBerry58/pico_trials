@@ -2,6 +2,9 @@
 
 #include "../../../dev_config.h"
 
+extern bool encoderPosition_updateFlag;
+extern bool Frame_SWCdata_Updated;
+
 /* Local types */
 enum ControlledTarget_e /* (1) */
 {
@@ -122,12 +125,10 @@ static inline uint8_t checkUpdate_pushButtonSM()
 static inline uint8_t checkUpdate_encoderSM()
 {
   uint8_t retVal = 0;
-  if(encoderPosition_old != encoderPosition)
+  if(true == encoderPosition_updateFlag)
   {
-    /* uint8 data type ensures wrap around the value 255 */
-    encoderDelta            =(encoderPosition_old - encoderPosition);
-    encoderPosition_old     = encoderPosition; 
-    notificationFlags.encoderPosition_updated = true;
+    encoderPosition_updateFlag = false;
+    Frame_SWCdata_Updated      = true;
   }
   else
   {

@@ -6,9 +6,6 @@ add_executable(devNode
 )
 
 target_link_libraries(devNode PUBLIC
-    pico_stdlib
-    pico_multicore
-    
     devSM_lib
 )
 

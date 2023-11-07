@@ -1,4 +1,5 @@
 add_subdirectory(DevNode)
+add_subdirectory(ObserverNode)
 add_subdirectory(LightController)
 add_subdirectory(LightSwitch)
 add_subdirectory(RadiatorController)

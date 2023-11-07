@@ -5,8 +5,24 @@
 
 #define NODE_ID 1u //Node IDs wil be given by the user/configuration sw
 
-uint8_t messageBuffer = 0u;
-uint8_t messageSize   = 0u;
+bool     Frame_SWCdata_Updated;
+extern uint8_t  encoderPosition;
+
+can_frame Rx_messageBuffer;
+
+can_frame Tx_messageBuffer = 
+{
+    .can_id     = 189u,
+    .can_dlc    = 8,
+    .data       = {0,0,0,0,0,0,0,0}
+};
+
+///TODO: add signal ID frame mapping
+void transferData(uint8_t signalID, uint8_t data)
+{
+    Tx_messageBuffer.can_dlc = 1u;
+    Tx_messageBuffer.data[0u] = data;
+}
 
 int main()
 {
@@ -26,7 +42,13 @@ int main()
     // run_OS();
     while(1)
     {
-        network_read(&(messageBuffer), &(messageSize));
+        if(true == Frame_SWCdata_Updated)
+        {
+            transferData(0, encoderPosition);
+            network_send_canFrame(&(Tx_messageBuffer));
+            Frame_SWCdata_Updated = false;
+        }
+        network_read_canFrame(&(Rx_messageBuffer));
     }
     printf("End of program: %llu", nodeError);
 }
