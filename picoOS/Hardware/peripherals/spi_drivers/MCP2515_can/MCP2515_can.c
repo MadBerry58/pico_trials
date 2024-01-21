@@ -162,6 +162,7 @@ static inline void endSPI         (MCP2515_instance *instance)
 MCP2515_Error MCP2515_init(MCP2515_instance *instance)
 {
     MCP2515_Error retVal = MCP2515_E_OK;
+    // spi_deinit          (spi_default);
     spi_init            (spi_default, instance->SPI_CLOCK);
     spi_set_format      (spi_default, 8, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);
 
@@ -172,6 +173,7 @@ MCP2515_Error MCP2515_init(MCP2515_instance *instance)
     gpio_set_function   (instance->INT_PIN,     GPIO_FUNC_SIO);
     gpio_init           (instance->INT_PIN);
     gpio_set_dir        (instance->INT_PIN,     GPIO_IN);
+    // gpio_set_pulls      (instance->INT_PIN, false, false);
     
     gpio_set_function   (instance->CS_PIN,      GPIO_FUNC_SIO);
     gpio_init           (instance->CS_PIN);

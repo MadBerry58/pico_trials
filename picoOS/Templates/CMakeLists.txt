@@ -1,5 +1,6 @@
-add_subdirectory(mosfetControl)
+add_subdirectory(fetControl)
 add_subdirectory(QuadratureEncoderSM)
+add_subdirectory(PushButtonSM)
 
 add_library(TemplateLibrary
     Templates.h
@@ -7,6 +8,7 @@ add_library(TemplateLibrary
 )
 
 target_link_libraries(TemplateLibrary PUBLIC
-    MosfetControlLibrary
+    FetControlLibrary
     QuadratureEncoderSMLibrary
+    PushButtonSMLibrary
 )

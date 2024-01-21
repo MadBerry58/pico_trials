@@ -1,0 +1,88 @@
+The mosfetControl component is designed to use multiple types of FET discreete components in order to provide a seamless user interface using the PWM functionality.
+
+Considerations:
+  As each FET devices can be used both as rapid ON-OFF switches, as well as voltage regulated devices, 
+  the PWM frequency/duty cycle must be able to account for capacitive charge(charging a parallel capacitor to sustain a voltage),
+  and for pulsing the device, by accounting for rise/fall delays and durations.
+  For anything above 3.3v, the interface must allow for a gate driver overlay configuration.
+
+  Pulsed use:
+    Used to minimize thermal conversion by minimizing time spent in rise/fall transitions.
+    This technique will require manual calibration for the intended use, by providing the parameters of the FET device, and interpolation table of the discreete levels.
+    To increase stability and minimize power loss to wire induction, switching frequency must be kept as low as possible.
+
+
+  Voltage use:
+    In order to generate a stable voltage, a capacitive buffer must be used to smooth out the duty cycle into a voltage. 
+    This capacitive buffer can either be the FET's gate capacitance(limited by the pico's max PWM frequency), or by adding a capacitor in parallel with the gate.
+    In order to streamline this process, the configuration structure requires the capacitance (parallel + FET) of the setup
+
+AI stuff - check thoroughly:
+
+To minimize thermal effects from the transitions in a MOSFET, it's important to understand how these effects arise and then determine a minimal time for the MOSFET to be in a stable conductance state. Here are the key considerations:
+
+Thermal Generation during Switching: The majority of thermal effects in a MOSFET are generated during the switching transitions (rising and falling edges). This is due to the power dissipation caused by simultaneous high voltage and current when the MOSFET is neither fully on nor fully off.
+
+Minimizing Transition Time: To reduce thermal stress, the transition times (rise and fall times) should be as short as possible, consistent with the desired performance and electromagnetic interference (EMI) considerations.
+
+Stable Conductance Phase: During the stable conductance phase (when the MOSFET is fully on or off), the power dissipation is typically lower compared to the transition phases. When fully on, the MOSFET operates in its low-resistance (on-state) region, minimizing power loss. When off, there's minimal current flow.
+
+Determining Minimal Stable Time: The minimal time in the stable conductance state is more about ensuring that the device can effectively handle the load it's controlling and less about thermal management. For thermal considerations, the focus should be on reducing the duration and impact of the transitions.
+
+Heat Dissipation and Cooling: Efficient heat dissipation methods (like heat sinks) and proper cooling strategies are essential, especially if the MOSFET is switching frequently or handling high power levels.
+
+Application-Specific Requirements: The minimal time will also depend on the specific requirements of your application, including the load characteristics and the frequency of operation.
+
+Given these points, a general rule for minimizing thermal effects is to ensure fast and efficient transitions while maintaining stable operation as required by the application. The actual minimal time in the stable phase would depend on the specific load requirements and operating frequency, and ensuring proper thermal management strategies are in place is crucial.
+
+AI python code
+# Adjusting the conductance and power dissipation functions to model real physical behaviors
+
+def realistic_conductance(time_s):
+    # Exponential rise and more linear fall for realistic behavior
+    if time_s < rise_delay_s:
+        return 0
+    elif rise_delay_s <= time_s < (rise_delay_s + rise_time_s):
+        # Exponential rise
+        return 1 - np.exp(-(time_s - rise_delay_s) / (rise_time_s / 5))
+    elif (rise_delay_s + rise_time_s) <= time_s < (total_time_s - fall_delay_s - fall_time_s):
+        return 1
+    elif (total_time_s - fall_delay_s - fall_time_s) <= time_s < (total_time_s - fall_delay_s):
+        # More linear fall
+        return (total_time_s - fall_delay_s - time_s) / fall_time_s
+    else:
+        return 0
+
+def realistic_power_dissipation(time_s, conductance):
+    # Power dissipation is highest during the transitions and when the MOSFET is fully on
+    if conductance == 0:
+        return 0  # No power dissipation when MOSFET is off
+    else:
+        # Power dissipation is proportional to Vds * I_load during on-state and transitions
+        return Vds_V * I_load_A * (1 - conductance)
+
+# Calculating realistic conductance and power dissipation values
+realistic_conductance_values = np.array([realistic_conductance(t) for t in time_s])
+realistic_power_dissipation_values = np.array([realistic_power_dissipation(t, c) for t, c in zip(time_s, realistic_conductance_values)])
+
+# Plotting the adjusted graphs
+fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 8))
+
+# Realistic Conductance plot
+ax1.plot(time_s * 1e9, realistic_conductance_values, label='Realistic MOSFET Conductance', color='blue')
+ax1.set_title('Realistic MOSFET Conductance Over Time')
+ax1.set_xlabel('Time (ns)')
+ax1.set_ylabel('Conductance (Normalized)')
+ax1.grid(True)
+ax1.legend()
+
+# Realistic Power Dissipation plot
+ax2.plot(time_s * 1e9, realistic_power_dissipation_values, label='Realistic Power Dissipation', color='red')
+ax2.set_title('Realistic Power Dissipation Over Time')
+ax2.set_xlabel('Time (ns)')
+ax2.set_ylabel('Power Dissipation (W)')
+ax2.grid(True)
+ax2.legend()
+
+plt.tight_layout()
+plt.show()

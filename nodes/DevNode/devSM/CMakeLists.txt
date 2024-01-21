@@ -1,7 +1,9 @@
 add_library(devSM_lib
     devSM.h
     devSM.c
-    # configuration.h
+
+### TODO: separate each SWC to a separate lib 
+
     nodeSWC/controlLogicSM/controlLogicSM.h
     nodeSWC/controlLogicSM/controlLogicSM.c
 

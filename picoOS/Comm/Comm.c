@@ -114,13 +114,7 @@ uint8_t network_read_canFrame(can_frame *frameBuffer)
     }
     else
     {/* message received */
-        
-        printf("CAN frame ID:  %lu \n", frameBuffer->can_id);
-        printf("CAN frame DLC: %lu \n", frameBuffer->can_dlc);
-        for(int i = 0; i < frameBuffer->can_dlc; ++i)
-        {
-            printf("CAN frame byte %d:  %lu \n", i, frameBuffer->data[i]);
-        }
+        errorVal = 1;
     }
 
     return errorVal;

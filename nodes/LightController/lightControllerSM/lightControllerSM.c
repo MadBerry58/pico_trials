@@ -1,7 +1,5 @@
 #include "lightControllerSM.h"
 
-
-
 void core_lightControllerSM(void)
 {
     /* Confirm core FIFO functionality */

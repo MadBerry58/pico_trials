@@ -1,5 +1,5 @@
-#ifndef DEV_LED_SM_H
-#define DEV_LED_SM_H
+#ifndef OBSERVER_COLD_LED_SM_H
+#define OBSERVER_COLD_LED_SM_H
 
 #include "pico/stdlib.h"
 

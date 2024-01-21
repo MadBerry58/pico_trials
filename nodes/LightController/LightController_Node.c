@@ -82,7 +82,7 @@ NodeTxFrameData lightControllerTxFrames[] =
 
 NodeRxFrameData lightControllerRxFrames[] = 
 {
-    // lightController_TX_statusFrame
+    // lightController_RX_statusFrame
     {
         {
             .can_id  = 0b00000000000000000000000000000001u,
@@ -93,7 +93,7 @@ NodeRxFrameData lightControllerRxFrames[] =
         1000u
     },
 
-    // lightController_TX_request/response frame
+    // lightController_RX_request/response frame
     {
         {
             .can_id  = 0b00000000000000000000000000000011,
@@ -104,10 +104,10 @@ NodeRxFrameData lightControllerRxFrames[] =
         2000u
     },
 
-    // lightController_TX_errorFrame
+    // lightController_RX_errorFrame
     {
         {
-            .can_id  = 0b00000000000000000000000000000101,
+            .can_id  = 0b00000000000000000000000000000111,
             .can_dlc = 8,
             .data    = { 0, 0, 0, 0, 0, 0, 0, 0 }
         },
@@ -135,15 +135,17 @@ int main()
     // run_OS();
     while(1)
     {
-        // for(uint8_t frameIndex = 0; frameIndex < sizeof(lightControllerTxFrames) / sizeof(lightControllerTxFrames[0]); ++frameIndex)
-        // {
-        //     if(lightControllerTxFrames[frameIndex].nextUpdate < (time_us_32()/1000u))
-        //     {
-        //         network_send_canFrame(&(lightControllerTxFrames[frameIndex].frame));
-        //         lightControllerTxFrames[frameIndex].nextUpdate += lightControllerTxFrames[frameIndex].updateTimeMS;
-        //     }
-        // }
+        for(uint8_t frameIndex = 0; frameIndex < sizeof(lightControllerTxFrames) / sizeof(lightControllerTxFrames[0]); ++frameIndex)
+        {
+            if(lightControllerTxFrames[frameIndex].nextUpdate < (time_us_32()/1000u))
+            {
+                // printf("Sending update frame\n");
+                network_send_canFrame(&(lightControllerTxFrames[frameIndex].frame));
+                lightControllerTxFrames[frameIndex].nextUpdate += lightControllerTxFrames[frameIndex].updateTimeMS;
+            }
+        }
         network_read_canFrame(&(Rx_messageBuffer));
+        
     }
     printf("End of program: %llu", nodeError);
 }

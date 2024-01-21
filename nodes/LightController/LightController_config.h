@@ -3,6 +3,17 @@
 
 #include "../../picoOS/picoOS.h"
 
+#define RGB_RING_PIN                2
+#define RGB_RING_PIXEL_NUMBER       16
+#define RGB_STRIP_PIN               3
+#define RGB_STRIP_PIXEL_NUMBER      300
+
+#define COLD_LED_PWM_PIN            4 /* warm LED PWM control pin */
+#define COLD_LED_PWM_
+
+#define WARM_LED_PWM_PIN            5 /* cold LED PWM control pin */
+#define WARM_LED_PWM_
+
 /* 
     pins:
     pin0 : debug TX (UART0)  <OS reserved>

@@ -16,9 +16,6 @@
 /* Use quadrature encoder template */
 #include "../../../picoOS/Templates/QuadratureEncoderSM/QuadratureEncoderSM.h"
 
-uint8_t  encoderPosition;
-bool     encoderPosition_updateFlag;
-
 /**
  * @brief 
  * 

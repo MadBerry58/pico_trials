@@ -24,7 +24,8 @@ typedef enum
     LightController,
     LightSwitch,
     RadiatorController,
-    WindowController
+    WindowController,
+    LedTester
     
 } NodeType_e;
 

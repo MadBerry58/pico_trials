@@ -6,8 +6,11 @@ add_library(lightControllerSM_lib
     nodeSWC/controlLogic/controlLogic.h
     nodeSWC/controlLogic/controlLogic.c
 
-    nodeSWC/ledSM/ledSM.h
-    nodeSWC/ledSM/ledSM.c
+    nodeSWC/warmLedSM/warmLedSM.h
+    nodeSWC/warmLedSM/warmLedSM.c
+
+    nodeSWC/coldLedSM/coldLedSM.h
+    nodeSWC/coldLedSM/coldLedSM.c
 
     nodeSWC/rgbSM/rgbSM.h
     nodeSWC/rgbSM/rgbSM.c

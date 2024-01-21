@@ -1,6 +1,6 @@
 #ifndef TEMPLATES_H
 #define TEMPLATES_H
 
-#include "mosfetControl/mosfetControl.h"
+#include "fetControl/fetControl.h"
 
 #endif

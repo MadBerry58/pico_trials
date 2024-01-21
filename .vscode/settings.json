@@ -47,9 +47,11 @@
         "time.h": "c",
         "string.h": "c",
         "candefinitions.h": "c",
-        "stdint.h": "c"
+        "stdint.h": "c",
+        "lightswitch_config.h": "c",
+        "ledtester_config.h": "c"
     },
-    "cortex-debug.variableUseNaturalFormat": false,
+    "cortex-debug.variableUseNaturalFormat": true,
     "cmake.configureOnOpen": true,
     "cmake.generator": "Unix Makefiles",
     "cmake.parallelJobs": 0
