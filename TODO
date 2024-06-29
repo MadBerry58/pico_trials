@@ -1,0 +1,69 @@
+1. Task Management (Scheduler):
+
+  - Task creation, scheduling, and execution.
+  - Priority-based scheduling, round-robin scheduling, etc.
+  - Task synchronization and communication mechanisms (semaphores, mutexes, message queues).
+
+2. Memory Management:
+
+  - Dynamic memory allocation and deallocation (heap management).
+  - Memory protection and memory partitioning for safety-critical applications.
+
+3. Interrupt Handling:
+
+  - Handling of hardware interrupts and exceptions.
+  - Real-time response to time-critical events.
+    - TODO: Create "enter critical area" functionality
+
+4. Timer and Time Management:
+
+  - System timer management for task scheduling and timing operations.
+    - Determine scheduler timer inteface required
+  - Accurate timekeeping and timestamping.
+    - Add OS time
+
+5. Device I/O Management:
+
+  - Abstraction of device drivers for peripheral communication (UART, SPI, I2C, etc.).
+  - Device management and configuration.
+
+6. Inter-Process Communication (IPC):
+
+  - Mechanisms for communication between tasks and processes.
+  - Shared memory, message passing, event signaling.
+
+7. File System (Optional):
+
+  - File I/O operations for persistent data storage.
+  - Support for various file systems (FAT, FAT32, etc.).
+
+8. Networking (Optional):
+
+  - TCP/IP stack implementation for networked applications.
+  - Socket API support for communication over Ethernet, Wi-Fi, etc.
+
+9. Power Management (Optional):
+
+  - Power-saving features for energy-efficient operation.
+  - Support for low-power modes and wakeup sources.
+
+10. Debugging and Diagnostics:
+
+  - Runtime monitoring and debugging features.
+  - Logging, traceability, and error reporting mechanisms.
+    - Add failure trap loop
+    - Add scratch register based traceability
+
+11. Security (Optional):
+
+  - Access control mechanisms.
+  - Cryptographic protocols and secure communication channels.
+
+12. Configuration and Initialization:
+
+  - Boot sequence and system initialization routines.
+  - Configuration of system parameters and resources.
+
+13. User templates
+
+  - Commonly used SWC templates

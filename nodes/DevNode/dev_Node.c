@@ -5,115 +5,38 @@
 #include "dev_config.h"
 #include <string.h>
 
+#include "../../picoOS/Comm/IPC/ipc.h"
+
 #define NODE_ID 1u //Node IDs wil be given by the user/configuration sw
-
-bool     Frame_SWCdata_Updated;
-
-bool     pushButton_updateFlag;
-bool     encoderPosition_updateFlag;
-
-bool     buttonState       = false;
-uint32_t buttonTimePressed = 0u;
-uint8_t  encoderPosition   = 0u;
-uint8_t  white_intensity   = 0u;
-uint8_t  white_color       = 0u;
-uint8_t  rgb_pattern_index = 0u;
-uint8_t  rgb_intensity     = 0u;
-uint8_t  rgb_setting_0     = 0u;
-uint8_t  rgb_setting_1     = 0u;
-uint8_t  rgb_setting_2     = 0u;
-
-can_frame Rx_messageBuffer = 
-{
-    .can_id     = 0,
-    .can_dlc    = 0,
-    .data       = {0,0,0,0,0,0,0,0}
-};
-
-can_frame Tx_messageBuffer = 
-{
-    .can_id     = 174u,
-    .can_dlc    = 8,
-    .data       = {0,0,0,0,0,0,0,0}
-};
+extern MCP2515_instance mainBus;
 
 int main()
 {
-    uint32_t nodeError = 0u;
     NodeType_e node_type = Development;
     /* Initialize base OS functionality */
     stdio_init_all();
     init_OS(node_type, NODE_ID);
 
     /* Reset previous core code */
-    multicore_reset_core1();
+    // multicore_reset_core1();
     /* Initialize node-specific functionality on core 1 */
-    multicore_launch_core1(core_devNodeSM);
+    // multicore_launch_core1(core_devNodeSM);
 
     // nodeError = multicore_fifo_pop_blocking();
     /* Start the OS and trigger the node scheduler loop */
     // run_OS();
     while(1)
     {
-        if(
-            (true == Frame_SWCdata_Updated) ||
-            (true == pushButton_updateFlag)
-        )
-        {
-            ((frame0_dev_tx_type*)&(Tx_messageBuffer.data))->button_time_pressed = buttonTimePressed / (1000 * 100);
-            ((frame0_dev_tx_type*)&(Tx_messageBuffer.data))->encoder_position    = encoderPosition  ;
-            ((frame0_dev_tx_type*)&(Tx_messageBuffer.data))->button_state        = buttonState      ;
-            ((frame0_dev_tx_type*)&(Tx_messageBuffer.data))->white_intensity     = white_intensity  ;
-            ((frame0_dev_tx_type*)&(Tx_messageBuffer.data))->white_color         = white_color      ;
-            ((frame0_dev_tx_type*)&(Tx_messageBuffer.data))->rgb_pattern_index   = rgb_pattern_index;
-            ((frame0_dev_tx_type*)&(Tx_messageBuffer.data))->rgb_intensity       = rgb_intensity    ;
-            ((frame0_dev_tx_type*)&(Tx_messageBuffer.data))->rgb_setting_0       = rgb_setting_0    ;
-            ((frame0_dev_tx_type*)&(Tx_messageBuffer.data))->rgb_setting_1       = rgb_setting_1    ;
-            ((frame0_dev_tx_type*)&(Tx_messageBuffer.data))->rgb_setting_2       = rgb_setting_2    ;
-            // printf( "TX_button_time_pressed: %d\n", ((frame0_dev_tx_type*)&(Tx_messageBuffer.data))->button_time_pressed);
-            // printf( "TX_button_state       : %f\n", ((frame0_dev_tx_type*)&(Tx_messageBuffer.data))->encoder_position   );
-            // printf( "TX_encoder_position   : %d\n", ((frame0_dev_tx_type*)&(Tx_messageBuffer.data))->button_state       );
-            // printf( "TX_white_intensity    : %d\n", ((frame0_dev_tx_type*)&(Tx_messageBuffer.data))->white_intensity    );
-            // printf( "TX_white_color        : %d\n", ((frame0_dev_tx_type*)&(Tx_messageBuffer.data))->white_color        );
-            // printf( "TX_rgb_pattern_index  : %d\n", ((frame0_dev_tx_type*)&(Tx_messageBuffer.data))->rgb_pattern_index  );
-            // printf( "TX_rgb_intensity      : %d\n", ((frame0_dev_tx_type*)&(Tx_messageBuffer.data))->rgb_intensity      );
-            // printf( "TX_rgb_setting_0      : %d\n", ((frame0_dev_tx_type*)&(Tx_messageBuffer.data))->rgb_setting_0      );
-            // printf( "TX_rgb_setting_1      : %d\n", ((frame0_dev_tx_type*)&(Tx_messageBuffer.data))->rgb_setting_1      );
-            // printf( "TX_rgb_setting_2      : %d\n", ((frame0_dev_tx_type*)&(Tx_messageBuffer.data))->rgb_setting_2      );
+        uint8_t     RxStatus = 0u;
+        can_frame   frameBuffer;
+        
+        /* Check if any messages are inside the can buffer */
+        MCP2515_getRxStatus(&(mainBus), &(RxStatus));
 
-            // transferData();
-            
-            network_send_canFrame(&(Tx_messageBuffer));
-            Frame_SWCdata_Updated = false;
-            pushButton_updateFlag = false;
-        }
-
-        if(1 == network_read_canFrame(&(Rx_messageBuffer)))
+        if(0 < (RX_RXANY & RxStatus))
         {
-            if(Rx_messageBuffer.can_id == 174u)
-            {
-                // memcpy(&(localFrame0DataRx), &(Rx_messageBuffer.data), 8u);
-                printf( "RX_button_state       : %d\n", ((frame0_dev_tx_type*)&(Rx_messageBuffer.data))->button_state                );
-                printf( "RX_button_time_pressed: %f\n", ((frame0_dev_tx_type*)&(Rx_messageBuffer.data))->button_time_pressed / 10.00 );
-                printf( "RX_encoder_position   : %d\n", ((frame0_dev_tx_type*)&(Rx_messageBuffer.data))->encoder_position            );
-                printf( "RX_white_intensity    : %d\n", ((frame0_dev_tx_type*)&(Rx_messageBuffer.data))->white_intensity             );
-                printf( "RX_white_color        : %d\n", ((frame0_dev_tx_type*)&(Rx_messageBuffer.data))->white_color                 );
-                printf( "RX_rgb_pattern_index  : %d\n", ((frame0_dev_tx_type*)&(Rx_messageBuffer.data))->rgb_pattern_index           );
-                printf( "RX_rgb_intensity      : %d\n", ((frame0_dev_tx_type*)&(Rx_messageBuffer.data))->rgb_intensity               );
-                printf( "RX_rgb_setting_0      : %d\n", ((frame0_dev_tx_type*)&(Rx_messageBuffer.data))->rgb_setting_0               );
-                printf( "RX_rgb_setting_1      : %d\n", ((frame0_dev_tx_type*)&(Rx_messageBuffer.data))->rgb_setting_1               );
-                printf( "RX_rgb_setting_2      : %d\n", ((frame0_dev_tx_type*)&(Rx_messageBuffer.data))->rgb_setting_2               );
-            }
-            else
-            {
-                printf("CAN frame ID:  %lu \n", Rx_messageBuffer.can_id);
-                printf("CAN frame DLC: %lu \n", Rx_messageBuffer.can_dlc);
-                for(int i = 0; i < Rx_messageBuffer.can_dlc; ++i)
-                {
-                  printf("CAN frame byte %d:  %lu \n", i, Rx_messageBuffer.data[i]);
-                }
-            }
+           MCP2515_readMessage(&(mainBus), &(frameBuffer));
+           printf("Received message:%d", frameBuffer.data);
         }
     }
-    printf("End of program: %llu", nodeError);
 }

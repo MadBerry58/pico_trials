@@ -1,7 +1,7 @@
 add_library(lightSwitchSM_lib
     lightSwitchSM.h
     lightSwitchSM.c
-    # configuration.h
+    lightSwitch_data.h
 
     nodeSWC/controlLogic/controlLogic.h
     nodeSWC/controlLogic/controlLogic.c
@@ -9,8 +9,8 @@ add_library(lightSwitchSM_lib
     nodeSWC/encoderSM/encoderSM.h
     nodeSWC/encoderSM/encoderSM.c
 
-    nodeSWC/rgbSM/rgbSM.h
-    nodeSWC/rgbSM/rgbSM.c
+    nodeSWC/pushButtonSM/pushButtonSM.h
+    nodeSWC/pushButtonSM/pushButtonSM.c
 )
 
 target_link_libraries(lightSwitchSM_lib PUBLIC

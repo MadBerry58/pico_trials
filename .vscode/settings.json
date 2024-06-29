@@ -49,9 +49,21 @@
         "candefinitions.h": "c",
         "stdint.h": "c",
         "lightswitch_config.h": "c",
-        "ledtester_config.h": "c"
+        "ledtester_config.h": "c",
+        "coldledsm.h": "c",
+        "warmledsm.h": "c",
+        "fetcontrol.h": "c",
+        "lightcontroller_config.h": "c",
+        "lightcontroller_data.h": "c",
+        "rgbsm.h": "c",
+        "lightcontroller.h": "c",
+        "new": "c",
+        "compare": "c",
+        "can_sm_apis.h": "c",
+        "ipc.h": "c",
+        "can_sm.h": "c"
     },
-    "cortex-debug.variableUseNaturalFormat": true,
+    "cortex-debug.variableUseNaturalFormat": false,
     "cmake.configureOnOpen": true,
     "cmake.generator": "Unix Makefiles",
     "cmake.parallelJobs": 0

@@ -7,7 +7,7 @@ Errors_OS_e (*OS_init_Routines[])(void) =
     init_Hardware,      //hardware needs to be initialized before board can be used
     init_Timers,        //timer functionality required for following components
 
-    init_Comms,         //connection to required for enabling network functionality
+    // init_Comms,         //connection to required for enabling network functionality
     
     init_OS_scheduler   //populate core event/task lists
 };
@@ -27,7 +27,7 @@ uint8_t init_routine_no = sizeof(OS_init_Routines) / sizeof(OS_init_Routines[0])
 uint8_t init_OS(uint8_t nodeType, uint8_t nodeID)
 {
     uint8_t retVal = 0u;
-    init_Comms();
+    // init_Comms();
     /* Initialize OS modules */
     /* Establish communication with the network */
     // network_connect(nodeType, nodeID);

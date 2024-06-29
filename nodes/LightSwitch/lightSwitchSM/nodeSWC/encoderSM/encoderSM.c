@@ -1,17 +1,8 @@
 #include "encoderSM.h"
 #include "../../../LightSwitch_config.h"
 
-/**
- * Copyright (c) 2021 pmarques-dev @ github
- *
- * SPDX-License-Identifier: BSD-3-Clause
- */
-
 #include <stdio.h>
 #include "pico/stdlib.h"
-
-/* Import node configuration */
-#include "../../../LightSwitch_config.h"
 
 /* Use quadrature encoder template */
 #include "../../../picoOS/Templates/QuadratureEncoderSM/QuadratureEncoderSM.h"
@@ -45,6 +36,7 @@ uint8_t init_encoderSM_swc()
     retVal = init_QuadratureEncoderSM_pio(&(quadratureSM));
     
     ///TOPO: process SM init error
+    printf("Encoder PIO initialized\n");
     return retVal;
 }
 
@@ -71,7 +63,6 @@ uint8_t run_encoderSM_swc()
             default:
                 break;
         }
-    printf("Quadrature position updated to: %d\n", encoderPosition);
     }
 
 

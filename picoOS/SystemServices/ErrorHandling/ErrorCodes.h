@@ -70,7 +70,7 @@ typedef enum
     COMM_SM_E_UNKNOWN_STATE,
     COMM_SM_E_UNKNOWN_REQUEST,
 
-    COMM_SM_E_UNKNOWN
+    COMM_SM_E_N_OK
 } CommSM_Error;
 
 #endif

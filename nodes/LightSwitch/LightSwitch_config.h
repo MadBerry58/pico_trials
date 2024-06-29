@@ -6,8 +6,8 @@
 #define RGB_RING_PIN                2
 #define RGB_RING_PIXEL_NUMBER       16
 
-#define ENCODER_AB_PINS             16
-#define ENCODER_C_PIN               18 /* GPIO18 */
+#define ENCODER_AB_PINS             14
+#define ENCODER_C_PIN               13 
 #define ENCODER_STEP_RATE           0 /* 0 - unlimited rate */
 
 #define CYCLE_TIME                  50u /* ms of sleep time between while cycles */

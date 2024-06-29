@@ -1,6 +1,0 @@
-#ifndef LIGHT_CONTROLLER_LOGIC_H
-#define LIGHT_CONTROLLER_LOGIC_H
-
-
-
-#endif

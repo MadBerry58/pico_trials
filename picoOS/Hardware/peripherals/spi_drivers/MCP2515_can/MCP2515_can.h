@@ -40,14 +40,18 @@ MCP2515_Error MCP2515_setListenOnlyMode (MCP2515_instance *instance);
 MCP2515_Error MCP2515_setSleepMode      (MCP2515_instance *instance);
 MCP2515_Error MCP2515_setLoopbackMode   (MCP2515_instance *instance);
 MCP2515_Error MCP2515_setNormalMode     (MCP2515_instance *instance);
+
 MCP2515_Error MCP2515_setClkOut         (MCP2515_instance *instance, const CAN_CLKOUT divisor);
 MCP2515_Error MCP2515_setBitrate        (MCP2515_instance *instance, const CAN_SPEED  canSpeed,  const CAN_CLOCK canClock                       );
 MCP2515_Error MCP2515_setFilterMask     (MCP2515_instance *instance, const MASK       num,       const bool ext,         const uint32_t ulData  );
 MCP2515_Error MCP2515_setFilter         (MCP2515_instance *instance, const RXF        num,       const bool ext,         const uint32_t ulData  );
+
 MCP2515_Error MCP2515_sendMessage_Buff  (MCP2515_instance *instance, const TXBn       txbn,      const can_frame *frame                         );
 MCP2515_Error MCP2515_sendMessage       (MCP2515_instance *instance,                             const can_frame *frame                         );
+
 MCP2515_Error MCP2515_readMessage_Buff  (MCP2515_instance *instance, const RXBn       rxbn,            can_frame *frame                         );
 MCP2515_Error MCP2515_readMessage       (MCP2515_instance *instance,                                   can_frame *frame                         );
 
-MCP2515_Error MCP2515_sendStaticFrame   (MCP2515_instance *instance, const TXBn       txbn,            can_frame *frame                         );
+void          MCP2515_getRxStatus       (MCP2515_instance *instance, uint8_t *status);
+void          MCP2515_getStatus         (MCP2515_instance *instance, uint8_t *status);
 #endif

@@ -28,23 +28,24 @@ uint8_t init_QuadratureEncoderSM(QuadratureEncoderSM *encoderSM)
 
 uint8_t run_QuadratureEncoderSM(QuadratureEncoderSM *encoderSM)
 {
-    uint8_t retVal;
-    uint8_t abVal;
-    bool pinValA;
-    bool pinValB;
-    bool pinValC;
+    // uint8_t retVal;
+    // uint8_t abVal;
+    // bool pinValA;
+    // bool pinValB;
+    // bool pinValC;
 
-    pinValA = gpio_get(encoderSM->pinNoA);
-    pinValB = gpio_get(encoderSM->pinNoB);
-    pinValC = gpio_get(encoderSM->pinNoC);
-    abVal = (pinValA << 0) | (pinValB << 1);
+    // pinValA = gpio_get(encoderSM->pinNoA);
+    // pinValB = gpio_get(encoderSM->pinNoB);
+    // pinValC = gpio_get(encoderSM->pinNoC);
+    // abVal = (pinValA << 0) | (pinValB << 1);
 
-    if((encoderSM->oldState & AB_PINS_MASK) != abVal)
-    {
-        encoderSM->newState |= abVal;
-    }
+    // if((encoderSM->oldState & AB_PINS_MASK) != abVal)
+    // {
+    //     encoderSM->newState |= abVal;
+    // }
     
-    return retVal;
+    // return retVal;
+    return 0;
 }
 
 
@@ -127,9 +128,7 @@ uint8_t run_QuadratureEncoderSM_pio(quadrature_encoder_sm_pio *sm_data)
                 /* Read sm data. Half rotation changes current rotation by 1, thus 2 is used as a debounce */
                 *(sm_data->rotationOutput) = (quadrature_encoder_get_count(pio1, sm_data->smID) / 2u);
                 
-                if(
-                    (sm_data->prevRotation != (*(sm_data->rotationOutput)))
-                )
+                if(sm_data->prevRotation != (*(sm_data->rotationOutput)))
                 {
                     sm_data->prevRotation = (*(sm_data->rotationOutput));
                     sm_data->notificationFlag = SM_QUADRATURE_N_UPDATE;

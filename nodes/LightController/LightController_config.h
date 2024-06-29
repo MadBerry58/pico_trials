@@ -3,16 +3,37 @@
 
 #include "../../picoOS/picoOS.h"
 
-#define RGB_RING_PIN                2
-#define RGB_RING_PIXEL_NUMBER       16
-#define RGB_STRIP_PIN               3
-#define RGB_STRIP_PIXEL_NUMBER      300
+#define RGB_RING_PIN                        2
+#define RGB_RING_PIXEL_NUMBER               16
+#define RGB_STRIP_PIN                       3
+#define RGB_STRIP_PIXEL_NUMBER              300
 
-#define COLD_LED_PWM_PIN            4 /* warm LED PWM control pin */
-#define COLD_LED_PWM_
+#define COLD_LED_PWM_PIN                    4 /* warm LED PWM control pin */
+#define COLD_LED_PWM_SLICE_NUM              1
+#define COLD_LED_PWM_CHANNEL                0
+#define COLD_LED_PWM_POLARITY               true
+#define COLD_LED_PWM_RISE_DELAY_NS          5u
+#define COLD_LED_PWM_RISE_TIME_NS           14u
+#define COLD_LED_PWM_FALL_DELAY_NS          4u
+#define COLD_LED_PWM_FALL_TIME_NS           30u
+#define COLD_LED_PWM_DRIVER_RISE_DELAY_NS   5u
+#define COLD_LED_PWM_DRIVER_RISE_TIME_NS    14u
+#define COLD_LED_PWM_DRIVER_FALL_DELAY_NS   4u
+#define COLD_LED_PWM_DRIVER_FALL_TIME_NS    30u
 
-#define WARM_LED_PWM_PIN            5 /* cold LED PWM control pin */
-#define WARM_LED_PWM_
+#define WARM_LED_PWM_PIN                    5 /* cold LED PWM control pin */
+#define WARM_LED_PWM_SLICE_NUM              2
+#define WARM_LED_PWM_CHANNEL                0
+#define WARM_LED_PWM_POLARITY               true
+#define WARM_LED_PWM_RISE_DELAY_NS          5u
+#define WARM_LED_PWM_RISE_TIME_NS           14u
+#define WARM_LED_PWM_FALL_DELAY_NS          4u
+#define WARM_LED_PWM_FALL_TIME_NS           30u
+#define WARM_LED_PWM_DRIVER_RISE_DELAY_NS   5u
+#define WARM_LED_PWM_DRIVER_RISE_TIME_NS    14u
+#define WARM_LED_PWM_DRIVER_FALL_DELAY_NS   4u
+#define WARM_LED_PWM_DRIVER_FALL_TIME_NS    30u
+
 
 /* 
     pins:

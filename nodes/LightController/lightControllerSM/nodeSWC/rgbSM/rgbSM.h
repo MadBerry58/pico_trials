@@ -1,6 +1,0 @@
-#ifndef LIGHT_CONTROLLER_RGB_SM_H
-#define LIGHT_CONTROLLER_RGB_SM_H
-
-
-
-#endif

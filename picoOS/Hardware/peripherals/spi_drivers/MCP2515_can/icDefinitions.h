@@ -315,4 +315,17 @@ typedef enum {
     STAT_RX1IF = (1<<1)
 } STAT;
 
+typedef enum {
+    RX_RXB0 =  (1 << 6),
+    RX_RXB1 =  (1 << 7),
+    RX_RXANY = (3 << 6)
+} RX_STAT;
+
+typedef enum {
+    TX_TXB0 =  (1 << 2),
+    TX_TXB1 =  (1 << 4),
+    TX_TXB2 =  (1 << 6),
+    TX_TXANY = (TX_TXB0 | TX_TXB1 | TX_TXB2)
+} TX_STAT;
+
 #endif

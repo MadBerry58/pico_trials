@@ -1,10 +1,11 @@
 #include "controlLogic.h"
-
 #include "../../../LightSwitch_config.h"
 
 extern bool encoderPosition_updateFlag;
 extern bool Frame_SWCdata_Updated;
 
+extern struct lightParameters_Rx_Frame_t lightParameters_Rx_Frame;
+extern struct lightParameters_Tx_Frame_t lightParameters_Tx_Frame;
 /* Local types */
 enum ControlledTarget_e /* (1) */
 {
@@ -28,7 +29,7 @@ enum UI_state_e
 bool        encoderPushButton_status_prev       = false;
 bool        encoderPushButton_status            = false;
 
-uint8_t     encoderPosition                     = 0u;
+extern uint8_t     encoderPosition;
 uint8_t     encoderPosition_old                 = 0u;
 uint8_t     encoderDelta                        = 0u;
 uint8_t     lastPatternIndex                    = 0u;
@@ -250,26 +251,16 @@ static inline uint8_t infereOutputs()
 }
 
 /* State machine functionality */
-uint8_t controlLogic_devSM_init()
+uint8_t controlLogic_lightSwitchSM_init()
 {
   uint8_t retVal = 0;
   /* Check if all the SWC are initialized */
   return retVal;
 }
 
-uint8_t controlLogic_devSM_run()
+uint8_t controlLogic_lightSwitchSM_run()
 {
   uint8_t retVal = 0u;
-
-  /* Check for SWC updates */
-  checkUpdate_encoderSM   ();
-  checkUpdate_pushButtonSM();
-
-  infereOutputs           ();
-
-  output_LED_ring         ();
-  output_RGB_strip        ();
-  output_LED_strip        ();
 
   /* Reset notification flags */
   // notificationFlags = { 0, 0, 0, 0, 0, 0 };

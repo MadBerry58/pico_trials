@@ -1,12 +1,12 @@
 add_library(CommLibrary 
     Comm.h
     Comm.c
-    commSM/commSM.h
-    commSM/commSM.c
-    commSM/commSM_functionality.h
-    commSM/commSM_functionality.c
-    osNetwork_Messages.h
-    osInternal_Messages.h
+    IPC/ipc.h
+    IPC/ipc.c
+    CAN/CAN_SM_APIs.h
+    CAN/CAN_SM_APIs.c
+    CAN/CAN_SM.h
+    CAN/CAN_SM.c
 )
 
 target_link_libraries(CommLibrary PUBLIC 

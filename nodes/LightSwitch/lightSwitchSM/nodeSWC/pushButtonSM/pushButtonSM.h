@@ -3,8 +3,8 @@
 
 #include "pico/stdlib.h"
 
-uint8_t pushButtonSM_init();
+uint8_t init_pushButtonSM();
 
-uint8_t pushButtonSM_run();
+uint8_t run_pushButtonSM();
 
 #endif

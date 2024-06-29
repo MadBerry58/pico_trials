@@ -1,4 +1,5 @@
 add_subdirectory(Comm)
+add_subdirectory(InterruptHandling)
 add_subdirectory(FlashControl)
 add_subdirectory(Hardware)
 add_subdirectory(Scheduler)
@@ -13,6 +14,7 @@ add_library(picoOS
 target_link_libraries(picoOS PUBLIC
     pico_multicore
 
+    IRQLibrary
     CommLibrary
     ErrorLibrary
     FlashLibrary

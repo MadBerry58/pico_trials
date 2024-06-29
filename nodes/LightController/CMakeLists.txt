@@ -1,4 +1,4 @@
-add_subdirectory(lightControllerSM)
+add_subdirectory(lightController)
 
 add_executable(LightController
     LightController_config.h
@@ -6,7 +6,7 @@ add_executable(LightController
     )
 
 target_link_libraries(LightController PUBLIC
-    lightControllerSM_lib
+    lightController_lib
     pico_stdlib
     pico_multicore
 )

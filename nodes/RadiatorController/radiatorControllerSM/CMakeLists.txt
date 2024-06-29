@@ -11,6 +11,9 @@ add_library(radiatorControllerSM_lib
 
     nodeSWC/tempSensSM/tempSensSM.h
     nodeSWC/tempSensSM/tempSensSM.c
+
+    nodeSWC/servoControlSM/servoControlSM.h
+    nodeSWC/servoControlSM/servoControlSM.c
 )
 
 target_link_libraries(radiatorControllerSM_lib PUBLIC
