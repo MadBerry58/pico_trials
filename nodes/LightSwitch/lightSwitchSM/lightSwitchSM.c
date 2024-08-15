@@ -1,4 +1,5 @@
 #include "lightSwitchSM.h"
+#include "lightSwitch_data.h"
 
 #include "nodeSWC/controlLogic/controlLogic.h"
 #include "nodeSWC/encoderSM/encoderSM.h"
@@ -10,11 +11,11 @@ void core_lightSwitchSM(void)
     /* Initialize SWCs */
     init_encoderSM_swc();
     init_pushButtonSM ();
+
     /* Run scheduler SWCs */
     while(1)
     {
         run_encoderSM_swc();
         run_pushButtonSM();
-
     }
 }

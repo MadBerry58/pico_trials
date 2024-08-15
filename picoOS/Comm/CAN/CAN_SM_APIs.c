@@ -1,205 +1,215 @@
 #include "CAN_SM_APIs.h"
-#include "../IPC/ipc.h"
+// #include "../IPC/ipc.h"
+#include "../../picoOS_Types.h"
+
+#include <string.h>
 
 ///TODO: create interface for the following MCU variables
-uint8_t frameNo     = 3u;
-uint8_t rxStatus    = 0u;
-uint8_t icStatus    = 0u;
-bool    txReq       = 0u;
-
-MCP2515_instance mainBus = 
-{
-    .RX_PIN         = 16u,
-    .CS_PIN         = 17u,
-    .SCK_PIN        = 18u,
-    .TX_PIN         = 19u,
-    .INT_PIN        = 20u,
-    .SPI_CLOCK      = (20 * 1000 * 1000) /* 20 Mhz*/
-};
-
-can_frame broadcastFrame = 
-{
-    .can_id     = 167u,
-    .can_dlc    = 4u,
-    .data       = 
-    {
-        29u,
-        23u,
-        19u,
-        17u
-    }
-};
 
 can_frame RxBuffer;
 
-static uint8_t framesLeft  = 0u;
-
-void init_CAN_Hardware(void)
-{
-    MCP2515_init            (&(mainBus));
-    MCP2515_reset           (&(mainBus));
-    MCP2515_setBitrate      (&(mainBus), CAN_1000KBPS, MCP_20MHZ);
-    MCP2515_setNormalMode   (&(mainBus));
-    MCP2515_sendMessage     (&(mainBus), &(broadcastFrame));
-}
-
-/* RX Frame handler functionality */
-
-void parseFrame(canIf_Rxframe *rxframe)
+/* ***  Helper functions  *** */
+void decodeFrame         (CanIf_Frame *rxframe)
 {
     uint64_t frameData = *(uint64_t*)(rxframe->canFrame.data);
-    for(uint8_t i = 0u; i < rxframe->frameSignalNo; ++i)
+    
+    for(uint8_t i = 0u; i < rxframe->signalNo; ++i)
     {
-        void     *IPC_variable = (rxframe->IPC_variables[i].IPC_Variable);
-        uint64_t  signalBits   = (frameData | ((1 << (rxframe->IPC_variables[i].bitSize)) - 1));
+        uint64_t  signalBits   = (frameData | ((1 << (rxframe->signals[i].bitSize)) - 1));
 
-        switch(rxframe->IPC_variables[i].type)
+        switch(rxframe->signals[i].type)
         {
             case IPC_UINT64:
-                *((uint64_t*)IPC_variable) = signalBits;
+                rxframe->signals[i].ipcData.uint64Data    = (uint64_t)signalBits;
                 break;
 
             case IPC_UINT32:
-                *((uint32_t*)IPC_variable) = signalBits;
+                rxframe->signals[i].ipcData.uint64Data    = (uint32_t)signalBits;
                 break;
 
             case IPC_UINT16:
-                *((uint16_t*)IPC_variable) = signalBits;
+                rxframe->signals[i].ipcData.uint16Data    = (uint16_t)signalBits;
                 break;
 
             case IPC_UINT8:
-                *((uint8_t* )IPC_variable) = signalBits;
+                rxframe->signals[i].ipcData.uint8Data     = (uint8_t) signalBits;
                 break;
 
             case IPC_BOOL:
-                *((bool*    )IPC_variable) = signalBits;
+                rxframe->signals[i].ipcData.booleanData   = (bool)    signalBits;
                 break;
 
             default:
                 printf("Unknown variable type");
         }
 
-        // if(NULL != (rxframe->IPC_variables[i].signalCallback))
-        // {
-        //     SignalCallbacks[signalCallbackIndex] = rxframe->IPC_variables[i].signalCallback;
-        //     ++signalCallbackIndex;
-        // }
-
-        frameData >>= (rxframe->IPC_variables[i].bitSize);
-    }
-}
-void update_HW_data     (void)
-{
-    MCP2515_getStatus   (&(mainBus), &(icStatus));
-    MCP2515_getRxStatus (&(mainBus), &(rxStatus));
-}
-
-bool framesReceived     (void)
-{
-    /* Read the RX status of the MCP2515 */
-    return (0b00000000u < (RX_RXANY & rxStatus));
-}
-
-bool transmitRequired   (void)
-{
-    return txReq;
-}
-
-void receiveFrames()
-{
-    bool  loop = true;
-    while(loop)
-    {
-        /* Check if any frame was received */
+        if(NULL != (rxframe->signals[i].updateCallback))
         {
-            
-            /* Read the data frame */
-            MCP2515_readMessage(&(mainBus), &(RxBuffer));
+            (rxframe->signals[i].updateCallback)();
+        }
 
-            bool frameNotFound = true;
-            /* Iterate through the known frame IDs array */
-            for(uint8_t knownFrameIndex = 0; knownFrameIndex < frameNo; ++knownFrameIndex)
-            {
-                /* Check if the known frame ID matches the received frame ID */
-                // if(CanIf_RxFrames[knownFrameIndex].canFrame.can_id == RxBuffer.can_id)
-                // {
-                //     /* Copy bitmapped data to local IPC variables */
-                //     parseFrame(&(CanIf_RxFrames[knownFrameIndex]));
-                //     frameNotFound = false;
-                //     if(CanIf_RxFrames[knownFrameIndex].frameRxCallback != NULL)
-                //     {
-                //         SignalCallbacks[signalCallbackIndex] = CanIf_RxFrames[knownFrameIndex].frameRxCallback;
-                //     }
-                // }
-            }
-
-            /* If the received frame is not known, register the error and ignore the frame */
-            if(true != frameNotFound)
-            {
-                //Register can filter error
-                printf("Unknown frame received, ID: %d\n", RxBuffer.can_id);
-            }
-        // }
-        // else
-        // {
-        //     loop = false;
-        // }
-    }
-
-    // /* Process Rx frame callbacks */
-    // for(frameCallbackIndex; frameCallbackIndex > 0u; --frameCallbackIndex)
-    // {
-    //     FrameCallbacks[frameCallbackIndex]();
-    // }
-
-    // /* Process Rx signal callbacks */
-    // for(signalCallbackIndex; signalCallbackIndex > 0u; --signalCallbackIndex)
-    // {
-    //     (SignalCallbacks[signalCallbackIndex])();
-    // }
+        frameData >>= (rxframe->signals[i].bitSize);
     }
 }
 
-void sendFrames()
-{
-    bool    loop        = true;
-    uint8_t TxStatus    = 0u;
+// void encodeFrame         (CanIf_frame *txframe)
+// {
+//     uint64_t frameData = *(uint64_t*)(rxframe->canFrame.data);
     
-    for(framesLeft; framesLeft > 0u; --framesLeft)
-    {
-        /* Read the TX status of the MCP2515 */
-        MCP2515_getStatus(&(mainBus), &(TxStatus));
+//     for(uint8_t i = 0u; i < rxframe->frameSignalNo; ++i)
+//     {
+//         uint64_t  signalBits   = (frameData | ((1 << (rxframe->IPC_variables[i].bitSize)) - 1));
 
-        if((TxStatus & TX_TXANY) == TX_TXANY)
+//         switch(rxframe->IPC_variables[i].type)
+//         {
+//             case IPC_UINT64:
+//                 rxframe->IPC_variables[i].ipcData.uint64Data    = (uint64_t)signalBits;
+//                 break;
+
+//             case IPC_UINT32:
+//                 rxframe->IPC_variables[i].ipcData.uint64Data    = (uint32_t)signalBits;
+//                 break;
+
+//             case IPC_UINT16:
+//                 rxframe->IPC_variables[i].ipcData.uint16Data    = (uint16_t)signalBits;
+//                 break;
+
+//             case IPC_UINT8:
+//                 rxframe->IPC_variables[i].ipcData.uint8Data     = (uint8_t) signalBits;
+//                 break;
+
+//             case IPC_BOOL:
+//                 rxframe->IPC_variables[i].ipcData.booleanData   = (bool)    signalBits;
+//                 break;
+
+//             default:
+//                 printf("Unknown variable type");
+//         }
+
+//         if(NULL != (rxframe->IPC_variables[i].updateCallback))
+//         {
+//             (rxframe->IPC_variables[i].updateCallback)();
+//         }
+
+//         frameData >>= (rxframe->IPC_variables[i].bitSize);
+//     }
+// }
+
+/*** SM Actions ***/
+void init_CAN_Hardware  (CanIf_t *canInterface)
+{
+    MCP2515_init            (&(canInterface->canBusCfg));
+    MCP2515_reset           (&(canInterface->canBusCfg));
+    MCP2515_setBitrate      (&(canInterface->canBusCfg), CAN_1000KBPS, MCP_8MHZ);
+    MCP2515_setNormalMode   (&(canInterface->canBusCfg));
+}
+
+void update_HW_data     (CanIf_t *canInterface)
+{
+    MCP2515_getStatus   (&(canInterface->canBusCfg), &(canInterface->canBusCfg.icStatus));
+    MCP2515_getRxStatus (&(canInterface->canBusCfg), &(canInterface->canBusCfg.rxStatus));
+}
+
+void receiveFrames      (CanIf_t *canInterface)
+{
+    /* Read the data frame */
+    MCP2515_readMessage(&(canInterface->canBusCfg), &(RxBuffer));
+
+    /* Iterate through the known frame IDs array */
+    for(uint8_t knownFrameIndex = 0; knownFrameIndex < canInterface->rxIfFrame_no; ++knownFrameIndex)
+    {
+        /* Check if the known frame ID matches the received frame ID */
+        if(canInterface->rxIfFrames[knownFrameIndex].canFrame.can_id == RxBuffer.can_id)
         {
-            // printf("Tx Buffers full\n");
-            // if(0 < TxRetriesLeft)
-            // {
-            //     --TxRetriesLeft;
-            //     continue;
-            // }
-            // else
-            // {
-            //     break;
-            // }
+            memcpy(canInterface->rxIfFrames[knownFrameIndex].canFrame.data, RxBuffer.data, canInterface->rxIfFrames[knownFrameIndex].canFrame.can_dlc);
+            canInterface->rxIfFrames[knownFrameIndex].frameUpdated = true;
+        }
+        else
+        {
+            //Register can filter error
+            printf("Unknown frame received, ID: %d\n", RxBuffer.can_id);
+        }
+    }
+}
+
+void processRxFrames    (CanIf_t *canInterface)
+{
+    /* Process Rx frame callbacks */
+    for(uint8_t frameCallbackIndex = 0u; frameCallbackIndex < canInterface->rxIfFrame_no; ++frameCallbackIndex)
+    {
+        if( 
+            (NULL != canInterface->rxIfFrames[frameCallbackIndex].frameUpdateCallback) &&
+            (true == canInterface->rxIfFrames[frameCallbackIndex].frameUpdated)
+        )
+        {
+            (canInterface->rxIfFrames[frameCallbackIndex].frameUpdateCallback)();
         }
         else
         {
             
         }
-        while(loop)
+
+        decodeFrame(&(canInterface->rxIfFrames[frameCallbackIndex]));
+    }
+}
+
+void transmitFrames     (CanIf_t *canInterface)
+{
+    uint8_t TxStatus    = 0u;
+    uint8_t frameIndex  = 0u;
+    
+    for(frameIndex = 0; frameIndex < canInterface->txIfFrame_no; ++frameIndex)
+    {
+        /* Read the TX status of the MCP2515 */
+        MCP2515_getStatus(&(canInterface->canBusCfg), &(TxStatus));
+
+        /* Check if any TX buffer is available */
+        if((TxStatus & TX_TXANY) == TX_TXANY)
+        {
+            /* Check if retries are available for frame */
+            if(0 < canInterface->txIfFrames[frameIndex].retriesLeft)
+            {
+                --(canInterface->txIfFrames[frameIndex].retriesLeft);
+
+
+                MCP2515_sendMessage(&(canInterface->canBusCfg), &(canInterface->txIfFrames[frameIndex].canFrame));
+
+                /* Reset the retry counter */
+                canInterface->txIfFrames[frameIndex].retriesLeft = canInterface->txIfFrames[frameIndex].updateRetries;
+            }
+            else
+            {
+                /* Report error */
+            }
+        }
+        else
         {
             
         }
-        // if(MCP2515_E_OK == MCP2515_sendMessage(&(mainBus), (can_frame*)&(TxFrames[updateFrameBuffer[i]]) ) )
-        // {
-        //     TxFrames[updateFrameBuffer[i]].updateFlag = false;
-        //     TxFrames[updateFrameBuffer[i]].lastUpdate = time_us_32();
-        //     TxFrames[updateFrameBuffer[i]].retryCount = 0u;
-        // }
-        // else
-        // {
-        //     /* Register a CAN controller issue */
-        // }
     }
+}
+
+/*** Transition Checks ***/
+bool framesReceived     (CanIf_t *canInterface)
+{
+    /* Read the RX status of the MCP2515 */
+    return (0b00000000u < (RX_RXANY & canInterface->canBusCfg.rxStatus));
+}
+
+bool transmitRequired   (CanIf_t *canInterface)
+{
+    uint8_t frameIndex = 0;
+    uint16_t txReq = 0u;
+    for(frameIndex = 0u; frameIndex < canInterface->txIfFrame_no; ++frameIndex)
+    {
+        if(true == canInterface->txIfFrames[frameIndex].frameUpdated)
+        {
+            txReq |= 1 << frameIndex;
+        }
+        else
+        {
+            txReq ^= 1 << frameIndex;
+        }
+    }
+    return txReq;
 }

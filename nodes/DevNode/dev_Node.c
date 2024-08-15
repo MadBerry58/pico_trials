@@ -5,10 +5,9 @@
 #include "dev_config.h"
 #include <string.h>
 
-#include "../../picoOS/Comm/IPC/ipc.h"
+#include "../../../picoOS_Types.h"
 
-#define NODE_ID 1u //Node IDs wil be given by the user/configuration sw
-extern MCP2515_instance mainBus;
+extern const CanIf_t devNode_CanIf;
 
 int main()
 {
@@ -27,16 +26,6 @@ int main()
     // run_OS();
     while(1)
     {
-        uint8_t     RxStatus = 0u;
-        can_frame   frameBuffer;
-        
-        /* Check if any messages are inside the can buffer */
-        MCP2515_getRxStatus(&(mainBus), &(RxStatus));
 
-        if(0 < (RX_RXANY & RxStatus))
-        {
-           MCP2515_readMessage(&(mainBus), &(frameBuffer));
-           printf("Received message:%d", frameBuffer.data);
-        }
     }
 }

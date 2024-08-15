@@ -1,19 +1,12 @@
 #ifndef CAN_SM_H
 #define CAN_SM_H
+#include "CAN_SM_APIs.h"
 
 #include "../../SystemServices/ErrorHandling/ErrorCodes.h"
-typedef enum
-{
-    COMM_SM_S_UNINITIALIZED,
-    COMM_SM_S_IDLE,
-    COMM_SM_S_READING,
-    COMM_SM_S_WRITING,
+#include "../../picoOS_Types.h"
 
-    COMM_SM_S_FAULT
-} CAN_SM_state;
+void CAN_SM_init    (CanIf_t *canInterface);
 
-void CAN_SM_init    (void);
-
-void CAN_SM_run     (void);
+void CAN_SM_run     (CanIf_t *canInterface);
 
 #endif

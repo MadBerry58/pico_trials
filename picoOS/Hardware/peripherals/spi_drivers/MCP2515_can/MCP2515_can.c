@@ -82,10 +82,11 @@ static inline void endSPI         (MCP2515_instance *instance)
     gpio_put(instance->CS_PIN, 1);
 }
 
-MCP2515_Error MCP2515_init_pins(MCP2515_instance *instance)
+MCP2515_Error MCP2515_init(MCP2515_instance *instance)
 {
     MCP2515_Error retVal = MCP2515_E_OK;
 
+    ///TODO: add sanity checking for input pins
     spi_deinit          (spi_default);
     spi_init            (spi_default, instance->SPI_CLOCK);
     spi_set_format      (spi_default, 8, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);
@@ -424,6 +425,16 @@ MCP2515_Error setMode(MCP2515_instance *instance, const CANCTRL_REQOP_MODE mode)
     }
 
     return retVal;
+}
+
+CANCTRL_REQOP_MODE getMode(MCP2515_instance *instance)
+{
+    uint8_t newmode = 0;
+    
+    readRegisters(instance, MCP_CANSTAT, &newmode, 1);
+    newmode &= CANSTAT_OPMOD;
+
+    return newmode;
 }
 
 MCP2515_Error MCP2515_setBitrate(MCP2515_instance *instance, const CAN_SPEED canSpeed, CAN_CLOCK canClock)

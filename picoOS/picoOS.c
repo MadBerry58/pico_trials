@@ -27,6 +27,7 @@ uint8_t init_routine_no = sizeof(OS_init_Routines) / sizeof(OS_init_Routines[0])
 uint8_t init_OS(uint8_t nodeType, uint8_t nodeID)
 {
     uint8_t retVal = 0u;
+    stdio_init_all();
     // init_Comms();
     /* Initialize OS modules */
     /* Establish communication with the network */

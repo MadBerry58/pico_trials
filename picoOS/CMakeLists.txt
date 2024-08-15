@@ -9,6 +9,8 @@ add_subdirectory(Templates)
 add_library(picoOS
     picoOS.h
     picoOS.c
+    picoOS_Types.h
+    canDB.h
 )
 
 target_link_libraries(picoOS PUBLIC

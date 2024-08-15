@@ -5,23 +5,52 @@
 #include "../../Hardware/peripherals/spi_drivers/MCP2515_can/MCP2515_can.h"
 #include "../IPC/ipc.h"
 
-typedef struct {
-    can_frame       canFrame;
+/**
+ * @brief Initialize the SPI peripheral and MCP2515 module
+ * 
+ * @param canInterface Structure containing the CAN bus interface data
+ */
+void init_CAN_Hardware  (CanIf_t *canInterface);
 
-    void           *frameRxCallback;
+/**
+ * @brief Read the status of the MCP2515 module
+ * 
+ * @param canInterface Structure containing the CAN bus interface data
+ */
+void update_HW_data     (CanIf_t *canInterface);
 
-    Rxframe_IPC    *IPC_variables;
-    uint8_t         frameSignalNo;
-} canIf_Rxframe;
+/**
+ * @brief Read the received CAN frames
+ * 
+ * @param canInterface Structure containing the CAN bus interface data
+ */
+void receiveFrames      (CanIf_t *canInterface);
 
-void init_CAN_Hardware  (void);
-void update_HW_data     (void);
-
-bool processRequest     (uint8_t);
-
+/**
+ * @brief Send the updated CAN frames
+ * 
+ * @param canInterface Structure containing the CAN bus interface data
+ */
+void transmitFrames     (CanIf_t *canInterface);
 
 /* Transition checks */
-bool framesReceived     (void);
-bool transmitRequired   (void);
+
+/**
+ * @brief   Check if any new CAN frame is present in the MCP2515 Rx buffers
+ * 
+ * @param   canInterface 
+ * @return  true 
+ * @return  false 
+ */
+bool framesReceived     (CanIf_t *canInterface);
+
+/**
+ * @brief   Check if CAN frame transmission is required
+ * 
+ * @param   canInterface 
+ * @return  true 
+ * @return  false 
+ */
+bool transmitRequired   (CanIf_t *canInterface);
 
 #endif

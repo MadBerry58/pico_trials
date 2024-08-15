@@ -1,0 +1,19 @@
+15.08.2024
+I have finally created something close to a satisfactory method of dealing with modular CAN frame sets.
+The solution involves using an "orphaned" .c file to declare the CanIf structure, and drag it into the main node source by using "extern".
+This solution might negate the need for a global "Types" header (to be determined)
+
+As a possible future objection, the Rx and Tx CanIf objects are still refferenced as array pointers in the CanIf configuration object.
+Optimal form would have the two arrays declared inside the constant CanIf object, but this would impact the homogenuity of the picoOS CanIf logic among the different nodes.
+Furthermore, further separation of the data containers into continuous arrays would allow for faster parsing of the memory aligned data, 
+assuming that the derefference speed is offset by a relevant number of contiguous read operations.
+
+Further improvements would involve centralizing the CAN database, in order to reduce boiler plate and user error.
+First attempt failed miserably, as the structures required double refferencing of the items. Further research required, going with the per-node db for now.
+
+Signal/Frame structure unified (at the cost of about 40 bits per signal. Might be costly, gotta ensure we really need to remember the owner ID for each signal).
+As per the datatype unification, it is possible to merge all signals into a single array, as well as all the frames. Further research required.
+
+The thing compiles for now, i'll leave the canif for a bit, and focus on the IPC. Creating coherent communication if trickier than anticipated, 
+as no low effort way is in sight for allowing uniform use of all data types through a single function. Only viable option at the moment,
+is to wrap signals and regular variables into function-like macros. 

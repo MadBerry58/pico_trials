@@ -61,7 +61,8 @@
         "compare": "c",
         "can_sm_apis.h": "c",
         "ipc.h": "c",
-        "can_sm.h": "c"
+        "can_sm.h": "c",
+        "picoos_types.h": "c"
     },
     "cortex-debug.variableUseNaturalFormat": false,
     "cmake.configureOnOpen": true,
