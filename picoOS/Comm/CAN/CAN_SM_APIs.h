@@ -1,7 +1,7 @@
 #ifndef CAN_SM_API_H
 #define CAN_SM_API_H
 
-#include "../../../SystemServices/ErrorHandling/ErrorCodes.h"
+#include "../../SystemServices/ErrorHandling/ErrorCodes.h"
 #include "../../Hardware/peripherals/spi_drivers/MCP2515_can/MCP2515_can.h"
 #include "../IPC/ipc.h"
 

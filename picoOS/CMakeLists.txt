@@ -1,10 +1,10 @@
-add_subdirectory(Comm)
+add_subdirectory(Hardware)
 add_subdirectory(InterruptHandling)
 add_subdirectory(FlashControl)
-add_subdirectory(Hardware)
 add_subdirectory(Scheduler)
 add_subdirectory(SystemServices)
 add_subdirectory(Templates)
+add_subdirectory(Comm)
 
 add_library(picoOS
     picoOS.h

@@ -14,5 +14,4 @@ target_link_libraries(CommLibrary PUBLIC
     hardware_irq
     hardware_spi
     hardware_dma
-    pio_can
     )

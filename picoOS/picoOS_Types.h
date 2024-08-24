@@ -31,11 +31,11 @@ typedef union
     int64_t     sint64Data;
     float       floatData ;
     double      doubleData;
-} IpcVar;
+} IpcContainer;
 
 typedef struct
 {
-    IpcVar      ipcData;              // IPC variable containing the signal data
+    IpcContainer      ipcData;              // IPC variable containing the signal data
     
     VarType     type;                 // IPC variable type
 
@@ -44,8 +44,8 @@ typedef struct
 
     void      (*updateCallback)();    // the function called when the signal data update is handled
 
-    IpcVar      dataRangeLow;         // the lower limit of the valid data range
-    IpcVar      dataRangeHigh;        // the upper limit of the valid data range
+    IpcContainer      dataRangeLow;         // the lower limit of the valid data range
+    IpcContainer      dataRangeHigh;        // the upper limit of the valid data range
     void      (*invalidValueCallback)();
 
     uint32_t    updateTime;           // the expected update time

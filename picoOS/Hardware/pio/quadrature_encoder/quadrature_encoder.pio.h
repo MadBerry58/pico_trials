@@ -14,6 +14,7 @@
 
 #define quadrature_encoder_wrap_target 15
 #define quadrature_encoder_wrap 23
+#define quadrature_encoder_pio_version 0
 
 static const uint16_t quadrature_encoder_program_instructions[] = {
     0x000f, //  0: jmp    15                         
@@ -49,6 +50,10 @@ static const struct pio_program quadrature_encoder_program = {
     .instructions = quadrature_encoder_program_instructions,
     .length = 24,
     .origin = 0,
+    .pio_version = 0,
+#if PICO_PIO_VERSION > 0
+    .used_gpio_ranges = 0x0
+#endif
 };
 
 static inline pio_sm_config quadrature_encoder_program_get_default_config(uint offset) {
