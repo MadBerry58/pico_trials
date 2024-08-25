@@ -25,6 +25,8 @@ int main()
 
     while(1)
     {
+        run_Comms(&(LightSwitch_CanIf));
+        
         MCP2515_sendMessage     (&(LightSwitch_CanIf.canBusCfg), &(LightSwitch_CanIf.txIfFrames[1].canFrame));
         sleep_ms(1000u);
     }
