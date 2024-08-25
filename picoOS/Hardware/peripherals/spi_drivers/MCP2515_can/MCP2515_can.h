@@ -28,6 +28,7 @@ typedef struct  {
     uint8_t         SCK_PIN;
     uint8_t         INT_PIN;
     uint32_t        SPI_CLOCK;
+    spi_inst_t     *SPI_INSTANCE;
 
     uint8_t         rxStatus;
     uint8_t         icStatus;

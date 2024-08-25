@@ -1,8 +1,21 @@
 #include "MCP2515_can.h"
+#include "hardware/dma.h"
+#include "stdio.h"
 #include <string.h>
 #include "pico/time.h"
 #include "boards/pico.h"
 
+/* Compile flags - Comment to deactivate*/
+// #define SPI_DMA_ACTIVE    /* Changes the SPI interface to asynchronous DMA data transfers over SPI */
+
+#define CAN_DMA_CTRL               0u
+#define CAN_DMA_RX                 1u
+#define CAN_DMA_TX                 2u
+#define CAN_DMA_MASK           0b111u
+
+#define SPI_PERIPHERAL             0u // SPI peripheral module - will depend on the pin arrangement
+
+#define DEFAULT_SPI_CLOCK 10 000 000u // 10MHz
 #define N_TXBUFFERS                3u
 #define N_RXBUFFERS                2u
 #define SET_MODE_TIMEOUT          10u // 10ms
@@ -49,6 +62,75 @@ RXF     filters[] = {RXF0, RXF1, RXF2, RXF3, RXF4, RXF5};
 uint8_t zeros[14] = {0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u};
 uint8_t tempMsg   = 0u;
 
+#define RXB0CTRL_Reset_Mask (RXBnCTRL_RXM_MASK      | RXB0CTRL_BUKT         | RXB0CTRL_FILHIT_MASK)
+
+#define RXB0CTRL_Reset_Data (RXBnCTRL_RXM_STDEXT    | RXB0CTRL_BUKT         | RXB0CTRL_FILHIT)
+
+#define RXB1CTRL_Reset_Mask (RXBnCTRL_RXM_MASK      | RXB1CTRL_FILHIT_MASK)
+
+#define RXB1CTRL_Reset_Data (RXBnCTRL_RXM_STDEXT    | RXB1CTRL_FILHIT)
+
+/***********************************************************************************/
+/****************************** DMA optimization data ******************************/
+enum dmaInstructionIndex
+{
+    INSTRUCTION_INDEX_RESET = 0,
+};
+
+uint8_t reset_instruction[] =
+{
+    INSTRUCTION_RESET
+};
+
+uint8_t postResetSetup[] =
+{
+    INSTRUCTION_BITMOD, MCP_RXB0CTRL, (RXBnCTRL_RXM_MASK|RXB0CTRL_BUKT|RXB0CTRL_FILHIT_MASK), (RXBnCTRL_RXM_STDEXT|RXB0CTRL_BUKT|RXB0CTRL_FILHIT),
+    INSTRUCTION_BITMOD, MCP_RXB1CTRL,               (RXBnCTRL_RXM_MASK|RXB1CTRL_FILHIT_MASK),               (RXBnCTRL_RXM_STDEXT|RXB1CTRL_FILHIT),
+    INSTRUCTION_BITMOD,  MCP_CANCTRL,                                        (CANCTRL_REQOP),                              (CANCTRL_REQOP_CONFIG),
+    INSTRUCTION_WRITE,  MCP_RXF0SIDH, 
+    INSTRUCTION_WRITE,  MCP_RXF1SIDH, 
+    INSTRUCTION_WRITE,  MCP_RXF2SIDH, 
+    INSTRUCTION_WRITE,  MCP_RXF3SIDH, 
+    INSTRUCTION_WRITE,  MCP_RXF4SIDH, 
+    INSTRUCTION_WRITE,  MCP_RXF5SIDH, 
+    MCP_TXB0CTRL,       0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    MCP_TXB1CTRL,       0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    MCP_TXB2CTRL,       0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    MCP_RXB0CTRL,       0,
+    MCP_RXB1CTRL,       0,
+    MCP_CANINTE,        resetMask
+};
+
+uint8_t postResetSetup_size = sizeof(postResetSetup) / sizeof(postResetSetup[0]);
+
+uint8_t modify_instruction_dma[4] = { 
+    INSTRUCTION_BITMOD, /* Device instruction to execute a masked write */ 
+    0u,                 /* Target register */
+    0u,                 /* Write mask */
+    0u                  /* Written data */
+};
+
+uint8_t write_instruction_dma [2] = { 
+    INSTRUCTION_WRITE,  /* Device instruction to write data to the target register */   
+    0u                  /* Target register */
+};
+
+uint8_t read_instruction_dma  [2] = { 
+    INSTRUCTION_READ,   /* Device instruction to read data from the target register */   
+    0u                  /* Target register */
+};
+
+uint8_t readStatus_instruction_dma = INSTRUCTION_READ_STATUS;
+uint8_t readBuffer[32u];
+uint8_t readCount;
+
+dma_channel_config canDMA_write_config;
+dma_channel_config canDMA_read_config;
+dma_channel_config canDMA_ctrl_config;
+
+/****************************** DMA optimization data ******************************/
+/***********************************************************************************/
+
 uint8_t MCP2515_IC_Status = 0u;
 
 void          prepareId           (uint8_t          *buffer,   const bool        ext,    const uint32_t id   );
@@ -75,34 +157,35 @@ uint8_t       getStatus           (MCP2515_instance *instance);
 
 static inline void startSPI       (MCP2515_instance *instance)
 {
+    // asm volatile("nop \n nop \n nop");
     gpio_put(instance->CS_PIN, 0);
+    // asm volatile("nop \n nop \n nop");
 }
 static inline void endSPI         (MCP2515_instance *instance)
 {
+    // asm volatile("nop \n nop \n nop");
     gpio_put(instance->CS_PIN, 1);
+    // asm volatile("nop \n nop \n nop");
 }
 
 MCP2515_Error MCP2515_init(MCP2515_instance *instance)
 {
     MCP2515_Error retVal = MCP2515_E_OK;
-
-    ///TODO: add sanity checking for input pins
-    spi_deinit          (spi_default);
-    spi_init            (spi_default, instance->SPI_CLOCK);
-    spi_set_format      (spi_default, 8, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);
+    spi_deinit          (instance->SPI_INSTANCE);
+    spi_init            (instance->SPI_INSTANCE, instance->SPI_CLOCK);
+    spi_set_format      (instance->SPI_INSTANCE, 8, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);
 
     gpio_set_function   (instance->TX_PIN,      GPIO_FUNC_SPI);
     gpio_set_function   (instance->RX_PIN,      GPIO_FUNC_SPI);
     gpio_set_function   (instance->SCK_PIN,     GPIO_FUNC_SPI);
-
+    gpio_set_function   (instance->CS_PIN,      GPIO_FUNC_SIO);
+    gpio_init           (instance->CS_PIN);
+    gpio_set_dir        (instance->CS_PIN,      GPIO_OUT);
+    
+    /* IRQ pin(s) */
     gpio_set_function   (instance->INT_PIN,     GPIO_FUNC_SIO);
     gpio_init           (instance->INT_PIN);
     gpio_set_dir        (instance->INT_PIN,     GPIO_IN);
-    gpio_set_pulls      (instance->INT_PIN,     false, false);
-    
-    // gpio_set_function   (instance->CS_PIN,      GPIO_FUNC_SIO);
-    gpio_init           (instance->CS_PIN);
-    gpio_set_dir        (instance->CS_PIN,      GPIO_OUT);
 
     endSPI(instance);
 
@@ -112,33 +195,24 @@ MCP2515_Error MCP2515_init(MCP2515_instance *instance)
 
 MCP2515_Error MCP2515_reset(MCP2515_instance *instance)
 {
+    MCP2515_Error result = MCP2515_E_FAILINIT;
     startSPI(instance);
 
     uint8_t instruction = INSTRUCTION_RESET;
-    spi_write_blocking(spi_default, &instruction, 1);
+    spi_write_blocking(instance->SPI_INSTANCE, &instruction, 1);
 
-    endSPI  (instance); 
+    endSPI  (instance);
 
     //Depends on oscillator & capacitors used
     sleep_ms(10);
 
-    // receives all valid messages using either Standard or Extended Identifiers that
-    // meet filter criteria. RXF0 is applied for RXB0, RXF1 is applied for RXB1
-    modifyRegister  (instance, MCP_RXB0CTRL,
-                    RXBnCTRL_RXM_MASK   | RXB0CTRL_BUKT | RXB0CTRL_FILHIT_MASK,
-                    RXBnCTRL_RXM_STDEXT | RXB0CTRL_BUKT | RXB0CTRL_FILHIT);
+    modifyRegister  (instance, MCP_RXB0CTRL, RXB1CTRL_Reset_Mask, RXB1CTRL_Reset_Data);
+    modifyRegister  (instance, MCP_RXB1CTRL, RXB0CTRL_Reset_Mask, RXB0CTRL_Reset_Data);
 
-    modifyRegister  (instance, MCP_RXB1CTRL,
-                    RXBnCTRL_RXM_MASK   | RXB1CTRL_FILHIT_MASK,
-                    RXBnCTRL_RXM_STDEXT | RXB1CTRL_FILHIT);
-
-    // clear filters and masks
-    // do not filter any standard frames for RXF0 used by RXB0
-    // do not filter any extended frames for RXF1 used by RXB1
     for (int i = 0; i < 6; ++i) 
     {
         bool ext = (i == 1);
-        MCP2515_Error result = MCP2515_setFilter(instance, filters[i], ext, 0);
+        result = MCP2515_setFilter(instance, filters[i], ext, 0);
         if (result != MCP2515_E_OK) 
         {
             return result;
@@ -147,13 +221,13 @@ MCP2515_Error MCP2515_reset(MCP2515_instance *instance)
 
     for (int i = 0; i < 2; ++i) 
     {
-        MCP2515_Error result = MCP2515_setFilterMask(instance, masks[i], true, 0);
+        result = MCP2515_setFilterMask(instance, masks[i], true, 0);
         if (result != MCP2515_E_OK) {
             return result;
         }
     }
 
-    return MCP2515_E_OK;
+    return result;
 }
 
 void readRegisters(MCP2515_instance *instance, const MCP2515_reg reg, uint8_t *values, const uint8_t data_length)
@@ -162,8 +236,8 @@ void readRegisters(MCP2515_instance *instance, const MCP2515_reg reg, uint8_t *v
     startSPI(instance);
     
     uint8_t read_instruction[2] = { INSTRUCTION_READ, reg};
-    spi_write_blocking  (spi_default, read_instruction, 2);
-    spi_read_blocking   (spi_default, 0x00, values, data_length);
+    spi_write_blocking  (instance->SPI_INSTANCE, read_instruction, 2);
+    spi_read_blocking   (instance->SPI_INSTANCE, 0x00, values, data_length);
 
     endSPI(instance);
 }
@@ -175,10 +249,10 @@ void setRegisters(MCP2515_instance *instance, const MCP2515_reg  reg, uint8_t *v
     startSPI(instance);
 
     /* Send write instruction */
-    spi_write_blocking(spi_default, write_instruction, 2);
+    spi_write_blocking(instance->SPI_INSTANCE, write_instruction, 2);
     
     /* Send new values */
-    spi_write_blocking(spi_default, values, data_length);
+    spi_write_blocking(instance->SPI_INSTANCE, values, data_length);
 
     endSPI(instance);
 }
@@ -198,7 +272,7 @@ void modifyRegister(MCP2515_instance *instance, const MCP2515_reg reg, const uin
 
     startSPI(instance);
 
-    spi_write_blocking(spi_default, instructions, 4);
+    spi_write_blocking(instance->SPI_INSTANCE, instructions, 4);
 
     endSPI(instance);
 }
@@ -209,50 +283,21 @@ uint8_t getStatus(MCP2515_instance *instance)
 
     startSPI(instance);
     uint8_t instruction = INSTRUCTION_READ_STATUS;
-    spi_write_blocking  (spi_default, &instruction, 1);
-    spi_read_blocking   (spi_default, 0x00, &ret, 1);
+    spi_write_blocking  (instance->SPI_INSTANCE, &instruction, 1);
+    spi_read_blocking   (instance->SPI_INSTANCE, 0x00, &ret, 1);
+
     endSPI  (instance);
 
     return ret;
-}
-
-void MCP2515_getStatus(MCP2515_instance *instance, uint8_t *status)
-{
-    startSPI(instance);
-    uint8_t instruction = INSTRUCTION_READ_STATUS;
-    spi_write_blocking  (spi_default, &instruction, 1);
-    spi_read_blocking   (spi_default, 0x00, status, 1);
-    endSPI  (instance);
-}
-
-void MCP2515_getRxBuff0_ID       (MCP2515_instance *instance, uint8_t *status)
-{
-    startSPI(instance);
-    uint8_t instruction = INSTRUCTION_RX_STATUS;
-    spi_write_blocking  (spi_default, &instruction, 1);
-    spi_read_blocking   (spi_default, 0x00, status, 1);
-    endSPI  (instance);
-    /* 
-        Bits 0 to 2 encode the type of filter matched by the received frame
-        This can allow for more efficient frame buffers management by binding 
-        up to 3 different frames to buffer 1 or by binding 2 high speed frames
-        to buffer 0 and allowing the rollover to buffer 1
-     */
 }
 
 void MCP2515_getRxStatus       (MCP2515_instance *instance, uint8_t *status)
 {
     startSPI(instance);
     uint8_t instruction = INSTRUCTION_RX_STATUS;
-    spi_write_blocking  (spi_default, &instruction, 1);
-    spi_read_blocking   (spi_default, 0x00, status, 1);
+    spi_write_blocking  (instance->SPI_INSTANCE, &instruction, 1);
+    spi_read_blocking   (instance->SPI_INSTANCE, 0x00, status, 1);
     endSPI  (instance);
-    /* 
-        Bits 0 to 2 encode the type of filter matched by the received frame
-        This can allow for more efficient frame buffers management by binding 
-        up to 3 different frames to buffer 1 or by binding 2 high speed frames
-        to buffer 0 and allowing the rollover to buffer 1
-     */
 }
 
 MCP2515_Error MCP2515_setConfigMode(MCP2515_instance *instance)
@@ -425,16 +470,6 @@ MCP2515_Error setMode(MCP2515_instance *instance, const CANCTRL_REQOP_MODE mode)
     }
 
     return retVal;
-}
-
-CANCTRL_REQOP_MODE getMode(MCP2515_instance *instance)
-{
-    uint8_t newmode = 0;
-    
-    readRegisters(instance, MCP_CANSTAT, &newmode, 1);
-    newmode &= CANSTAT_OPMOD;
-
-    return newmode;
 }
 
 MCP2515_Error MCP2515_setBitrate(MCP2515_instance *instance, const CAN_SPEED canSpeed, CAN_CLOCK canClock)
@@ -855,7 +890,7 @@ MCP2515_Error MCP2515_sendMessage_Buff(MCP2515_instance *instance, const TXBn tx
         prepareId(data, ext, id);
 
         /* if the frame is a request, bind RTR mask, otherwise bind the length of the data */
-        data[MCP_DLC] = rtr ? RTR_MASK : frame->can_dlc;
+        data[MCP_DLC] = rtr ? (frame->can_dlc | RTR_MASK) : frame->can_dlc;
 
         /* copy the frame data */
         memcpy(&data[MCP_DATA], frame->data, frame->can_dlc);
@@ -870,6 +905,50 @@ MCP2515_Error MCP2515_sendMessage_Buff(MCP2515_instance *instance, const TXBn tx
         readRegisters(instance, txbuf->CTRL, &ctrl, 1);
 
         /* Check if the message was aborted, lost arbitration or suffered an error */
+        if ((ctrl & (TXB_ABTF | TXB_MLOA | TXB_TXERR)) != 0) 
+        {
+            retVal = MCP2515_E_FAILTX;
+        }
+        else
+        {
+            retVal = MCP2515_E_OK;
+        }
+    }
+    return retVal;
+}
+
+MCP2515_Error MCP2515_sendStaticFrame(MCP2515_instance *instance, const TXBn txbn, can_frame *frame)
+{
+    MCP2515_Error retVal = MCP2515_E_UNKNOWN;
+    uint8_t ctrl;
+
+    if(frame->can_dlc > CAN_MAX_DLEN) 
+    {
+        retVal = MCP2515_E_MSGTOOBIG;
+    }
+    else
+    {
+        const struct TXBn_REGS *txbuf = &TXB[txbn];
+
+        uint8_t data[13];
+
+
+        // bool     ext = (frame->can_id & CAN_EFF_FLAG);
+        // bool     rtr = (frame->can_id & CAN_RTR_FLAG);
+        // uint32_t id  = (frame->can_id & (ext ? CAN_EFF_MASK : CAN_SFF_MASK));
+
+        // prepareId(data, ext, id);
+
+        // data[MCP_DLC] = rtr ? (frame->can_dlc | RTR_MASK) : frame->can_dlc;
+
+        // memcpy(&data[MCP_DATA], frame->data, frame->can_dlc);
+
+        setRegisters(instance, txbuf->SIDH, data, 5 + frame->can_dlc);
+
+        modifyRegister(instance, txbuf->CTRL, TXB_TXREQ, TXB_TXREQ);
+
+        readRegisters(instance, txbuf->CTRL, &ctrl, 1);
+
         if ((ctrl & (TXB_ABTF | TXB_MLOA | TXB_TXERR)) != 0) 
         {
             retVal = MCP2515_E_FAILTX;
@@ -910,7 +989,6 @@ MCP2515_Error MCP2515_sendMessage(MCP2515_instance *instance, const can_frame *f
             }
         }
     }
-
 
     return retVal;
 }
@@ -991,4 +1069,9 @@ MCP2515_Error MCP2515_readMessage(MCP2515_instance *instance, can_frame *frame)
     }
 
     return retVal;
+}
+
+uint8_t       MCP2515_readStatus        (MCP2515_instance *instance)
+{
+    return getStatus(instance);
 }

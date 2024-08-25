@@ -100,8 +100,9 @@ void init_CAN_Hardware  (CanIf_t *canInterface)
 {
     MCP2515_init            (&(canInterface->canBusCfg));
     MCP2515_reset           (&(canInterface->canBusCfg));
-    MCP2515_setBitrate      (&(canInterface->canBusCfg), CAN_1000KBPS, MCP_8MHZ);
+    MCP2515_setBitrate      (&(canInterface->canBusCfg), CAN_500KBPS, MCP_8MHZ);
     MCP2515_setNormalMode   (&(canInterface->canBusCfg));
+    MCP2515_sendMessage     (&(canInterface->canBusCfg), &(canInterface->txIfFrames[0].canFrame));
 }
 
 void update_HW_data     (CanIf_t *canInterface)

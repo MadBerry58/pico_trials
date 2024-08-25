@@ -57,7 +57,6 @@ struct systemCommunication_Rx_Frame_t
     const   uint8_t         dataBytes;
 
             bool            updateFlag;
-    const   FrameUpdate_t   updateType;
     const   uint16_t        updateTimeMS;
     const   void            (*callback)(void);
 } systemCommunication_Rx_Frame = 
@@ -71,7 +70,6 @@ struct systemCommunication_Rx_Frame_t
     .dataBytes          = 3,
 
     .updateFlag         = false,
-    .updateType         = 0u,
     .updateTimeMS       = 100u,
     .callback           = NULL
 };
@@ -92,7 +90,6 @@ struct systemCommunication_Tx_Frame_t
     const   uint8_t         dataBytes;
 
             bool            updateFlag;
-    const   FrameUpdate_t   updateType;
     const   uint16_t        updateTimeMS;
     const   void            (*callback)(void);
 } systemCommunication_Tx_Frame = 
@@ -110,7 +107,6 @@ struct systemCommunication_Tx_Frame_t
     },
 
     .updateFlag               = false,
-    .updateType               = 0u,
     .updateTimeMS             = 100u,
     .callback                 = NULL
 };

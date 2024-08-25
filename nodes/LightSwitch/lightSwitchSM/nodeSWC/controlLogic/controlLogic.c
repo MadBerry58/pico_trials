@@ -41,13 +41,7 @@ enum SubMenu_e
 {
     WHITE_TEMPERATURE,
     
-}
-
-/* Helper functions */
-inline static void getInputType()
-{
-    
-}
+};
 
 /* State machine functionality */
 uint8_t controlLogic_lightSwitchSM_init()
@@ -63,7 +57,7 @@ uint8_t controlLogic_lightSwitchSM_run()
     uint8_t retVal = 0;
     if(userInputAvailable)
     {
-        getInputType();
+        // getInputType();
 
         switch(LightState)
         {
@@ -76,7 +70,7 @@ uint8_t controlLogic_lightSwitchSM_run()
                     break;
 
                     case PRESS_SHORT:
-                        turnOn();
+                        // turnOn();
                     break;
 
                     case PRESS_LONG:
@@ -87,7 +81,7 @@ uint8_t controlLogic_lightSwitchSM_run()
                         switch(press_number)
                         {
                             case DEFAULT_PRESS_NO:
-                                turnOn_default();
+                                // turnOn_default();
                             break;
 
                             default:
@@ -114,11 +108,11 @@ uint8_t controlLogic_lightSwitchSM_run()
                     break;
 
                     case PRESS_SHORT:
-                        turnOff();
+                        // turnOff();
                     break;
 
                     case PRESS_LONG:
-                        submenu_whiteTemperature();
+                        // submenu_whiteTemperature();
                     break;
 
                     case PRESS_MULTI:
@@ -134,7 +128,7 @@ uint8_t controlLogic_lightSwitchSM_run()
                     break;
 
                     case ROTATE:
-                        change_whiteIntensity();
+                        // change_whiteIntensity();
                         LightState = WHITE;
                     break;
 
@@ -153,7 +147,7 @@ uint8_t controlLogic_lightSwitchSM_run()
                     break;
 
                     case PRESS_SHORT:
-                        turnOff();
+                        // turnOff();
                     break;
 
                     case PRESS_LONG:
@@ -191,11 +185,11 @@ uint8_t controlLogic_lightSwitchSM_run()
                     break;
 
                     case PRESS_SHORT:
-                        turnOff();
+                        // turnOff();
                     break;
 
                     case PRESS_LONG:
-                        submenu_whiteTemperature();
+                        // submenu_whiteTemperature();
                     break;
 
                     case PRESS_MULTI:
@@ -211,7 +205,7 @@ uint8_t controlLogic_lightSwitchSM_run()
                     break;
 
                     case ROTATE:
-                        change_rgbIntensity();
+                        // change_rgbIntensity();
                         LightState = RGB;
                     break;
 
@@ -222,15 +216,7 @@ uint8_t controlLogic_lightSwitchSM_run()
             break;
 
             case SUBMENU:
-                switch (expression)
-                {
-                case /* constant-expression */:
-                    /* code */
-                    break;
-                
-                default:
-                    break;
-                }
+
             break;
 
             default:

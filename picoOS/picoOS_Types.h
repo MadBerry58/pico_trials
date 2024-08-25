@@ -76,7 +76,7 @@ typedef struct {
     uint8_t         signalNo;
     bool            frameUpdated;
 
-    uint8_t         updatePeriod;
+    uint16_t        updatePeriod_ms;
     uint8_t         updateRetries;
     uint8_t         retriesLeft;
 } CanIf_Frame;

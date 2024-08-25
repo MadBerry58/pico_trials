@@ -106,7 +106,7 @@ CanIf_Frame devNode_CanIf_TxFrames[] =
         .signalNo             = 0U,
         .frameUpdated         = false,
 
-        .updatePeriod         = 0u,
+        .updatePeriod_ms      = 0u,
         .updateRetries        = 0u,
         .retriesLeft          = 0u,
     },
@@ -124,7 +124,7 @@ CanIf_Frame devNode_CanIf_TxFrames[] =
         .signalNo             = 0U,
         .frameUpdated         = false,
 
-        .updatePeriod         = 0u,
+        .updatePeriod_ms      = 0u,
         .updateRetries        = 0u,
         .retriesLeft          = 0u,
     },
@@ -146,7 +146,7 @@ CanIf_Frame devNode_CanIf_RxFrames[] =
         .signalNo             = 2u,
         .frameUpdated         = false,
 
-        .updatePeriod         = 0u,
+        .updatePeriod_ms      = 0u,
         .updateRetries        = 0u,
         .retriesLeft          = 0u,
     },
@@ -164,7 +164,7 @@ CanIf_Frame devNode_CanIf_RxFrames[] =
         .signalNo             = 0U,
         .frameUpdated         = false,
 
-        .updatePeriod         = 0u,
+        .updatePeriod_ms      = 0u,
         .updateRetries        = 0u,
         .retriesLeft          = 0u,
     },
