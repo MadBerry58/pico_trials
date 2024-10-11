@@ -1,7 +1,7 @@
+add_subdirectory(FreeRTOS)
 add_subdirectory(Hardware)
 add_subdirectory(InterruptHandling)
 add_subdirectory(FlashControl)
-add_subdirectory(Scheduler)
 add_subdirectory(SystemServices)
 add_subdirectory(Templates)
 add_subdirectory(Comm)
@@ -15,13 +15,15 @@ add_library(picoOS
 
 target_link_libraries(picoOS PUBLIC
     pico_multicore
+    freertos_config
+    pico_async_context_freertos
+    FreeRTOS-Kernel-Heap4
 
     IRQLibrary
     CommLibrary
     ErrorLibrary
     FlashLibrary
     HardwareLibrary
-    SchedulerLibrary
     TimerLibrary
     WatchdogLibrary
     TemplateLibrary

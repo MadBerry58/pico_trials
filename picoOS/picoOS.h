@@ -9,7 +9,6 @@
 #include "Comm/Comm.h"
 #include "FlashControl/FlashControl.h"
 #include "Hardware/Hardware.h"
-#include "Scheduler/Scheduler.h"
 #include "SystemServices/ErrorHandling/ErrorHandling.h"
 #include "SystemServices/Timers/Timers.h"
 #include "SystemServices/Watchdog/Watchdog.h"

@@ -21,7 +21,6 @@ CanIf_Signal RxSignals[] =
         .dataRangeHigh.uint8Data  = ((1<<5u) - 1),
         .invalidValueCallback     = NULL,
 
-        .updateTime               = 0u,
         .timeoutCallback          = NULL,
     },
     { //Test Rx Signal 1
@@ -37,7 +36,6 @@ CanIf_Signal RxSignals[] =
         .dataRangeHigh.uint16Data = ((1<<14u) - 1),
         .invalidValueCallback     = NULL,
 
-        .updateTime               = 0u,
         .timeoutCallback          = NULL,
     },
     { //Test Rx Signal 2
@@ -53,7 +51,6 @@ CanIf_Signal RxSignals[] =
         .dataRangeHigh.uint32Data = ((1<<26u) - 1),
         .invalidValueCallback     = NULL,
 
-        .updateTime               = 0u,
         .timeoutCallback          = NULL,
     },
     { //Test Rx Signal 3
@@ -69,7 +66,6 @@ CanIf_Signal RxSignals[] =
         .dataRangeHigh.uint64Data = ((1<<34u) - 1),
         .invalidValueCallback     = NULL,
 
-        .updateTime               = 0u,
         .timeoutCallback          = NULL,
     },
     { //Test Rx Signal 4
@@ -85,7 +81,6 @@ CanIf_Signal RxSignals[] =
         .dataRangeHigh.uint64Data = ((1<<4u) - 1),
         .invalidValueCallback     = NULL,
 
-        .updateTime               = 0u,
         .timeoutCallback          = NULL,
     },
 };

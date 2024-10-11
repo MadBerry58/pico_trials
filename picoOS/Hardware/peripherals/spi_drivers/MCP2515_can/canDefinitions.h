@@ -79,14 +79,14 @@ typedef enum  {
 } CAN_CLKOUT;
 
 typedef enum  {
-    CANINTF_RX0IF = 0x01,
-    CANINTF_RX1IF = 0x02,
-    CANINTF_TX0IF = 0x04,
-    CANINTF_TX1IF = 0x08,
-    CANINTF_TX2IF = 0x10,
-    CANINTF_ERRIF = 0x20,
-    CANINTF_WAKIF = 0x40,
-    CANINTF_MERRF = 0x80
+    CANINTF_RX0IF = 0x01,   /* Receive Buffer 0 Full Interrupt Flag bit */
+    CANINTF_RX1IF = 0x02,   /* Receive Buffer 1 Full Interrupt Flag bit */
+    CANINTF_TX0IF = 0x04,   /* Transmit Buffer 0 Empty Interrupt Flag bit */
+    CANINTF_TX1IF = 0x08,   /* Transmit Buffer 1 Empty Interrupt Flag bit */
+    CANINTF_TX2IF = 0x10,   /* Transmit Buffer 2 Empty Interrupt Flag bit */
+    CANINTF_ERRIF = 0x20,   /* Error Interrupt Flag bit (multiple sources in EFLG register) */
+    CANINTF_WAKIF = 0x40,   /* Wake-up Interrupt Flag bit */
+    CANINTF_MERRF = 0x80    /* Message Error Interrupt Flag bit */
 } CANINTF;
 
 typedef enum  {

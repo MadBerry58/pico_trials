@@ -2,7 +2,7 @@
 #include <string.h>
 #include "pico/time.h"
 #include "boards/pico.h"
-
+#include <stdio.h>
 #define N_TXBUFFERS                3u
 #define N_RXBUFFERS                2u
 #define SET_MODE_TIMEOUT          10u // 10ms
@@ -837,47 +837,41 @@ MCP2515_Error MCP2515_sendMessage_Buff(MCP2515_instance *instance, const TXBn tx
     MCP2515_Error retVal = MCP2515_E_UNKNOWN;
     uint8_t ctrl;
 
-    if(frame->can_dlc > CAN_MAX_DLEN) 
+    const struct TXBn_REGS *txbuf = &TXB[txbn];
+
+    uint8_t data[13];
+
+    bool     ext = (frame->can_id & CAN_EFF_FLAG);
+    bool     rtr = (frame->can_id & CAN_RTR_FLAG);
+    uint32_t id  = (frame->can_id & (ext ? CAN_EFF_MASK : CAN_SFF_MASK));
+
+    prepareId(data, ext, id);
+
+    /* if the frame is a request, bind RTR mask, otherwise bind the length of the data */
+    data[MCP_DLC] = rtr ? RTR_MASK : frame->can_dlc;
+
+    /* copy the frame data */
+    memcpy(&data[MCP_DATA], frame->data, frame->can_dlc);
+
+    /* write the 5 id bytes + can_dlc data bytes to SIDH register */
+    setRegisters(instance, txbuf->SIDH, data, 5 + frame->can_dlc);
+
+    /* set the control register to transmit request */
+    modifyRegister(instance, txbuf->CTRL, TXB_TXREQ, TXB_TXREQ);
+
+    /* Read control register */
+    readRegisters(instance, txbuf->CTRL, &ctrl, 1);
+
+    /* Check if the message was aborted, lost arbitration or suffered an error */
+    if ((ctrl & (TXB_ABTF | TXB_MLOA | TXB_TXERR)) != 0) 
     {
-        retVal = MCP2515_E_MSGTOOBIG;
+        retVal = MCP2515_E_FAILTX;
     }
     else
     {
-        const struct TXBn_REGS *txbuf = &TXB[txbn];
-
-        uint8_t data[13];
-
-        bool     ext = (frame->can_id & CAN_EFF_FLAG);
-        bool     rtr = (frame->can_id & CAN_RTR_FLAG);
-        uint32_t id  = (frame->can_id & (ext ? CAN_EFF_MASK : CAN_SFF_MASK));
-
-        prepareId(data, ext, id);
-
-        /* if the frame is a request, bind RTR mask, otherwise bind the length of the data */
-        data[MCP_DLC] = rtr ? RTR_MASK : frame->can_dlc;
-
-        /* copy the frame data */
-        memcpy(&data[MCP_DATA], frame->data, frame->can_dlc);
-
-        /* write the 5 id bytes + can_dlc data bytes to SIDH register */
-        setRegisters(instance, txbuf->SIDH, data, 5 + frame->can_dlc);
-
-        /* set the control register to transmit request */
-        modifyRegister(instance, txbuf->CTRL, TXB_TXREQ, TXB_TXREQ);
-
-        /* Read control register */
-        readRegisters(instance, txbuf->CTRL, &ctrl, 1);
-
-        /* Check if the message was aborted, lost arbitration or suffered an error */
-        if ((ctrl & (TXB_ABTF | TXB_MLOA | TXB_TXERR)) != 0) 
-        {
-            retVal = MCP2515_E_FAILTX;
-        }
-        else
-        {
-            retVal = MCP2515_E_OK;
-        }
+        retVal = MCP2515_E_OK;
     }
+
     return retVal;
 }
 
@@ -887,10 +881,9 @@ MCP2515_Error MCP2515_sendMessage(MCP2515_instance *instance, const can_frame *f
     uint8_t index;
     uint8_t ctrlval;
     
-
     if (CAN_MAX_DLEN < frame->can_dlc) 
     {/* Data payload bigger than the max value */
-        retVal = MCP2515_E_FAILTX;
+        retVal = MCP2515_E_MSGTOOBIG;
     }
     else
     {
@@ -913,6 +906,22 @@ MCP2515_Error MCP2515_sendMessage(MCP2515_instance *instance, const can_frame *f
 
     return retVal;
 }
+
+// MCP2515_Error MCP2515_readMessage_ID(MCP2515_instance *instance, uint8_t rxBufferIndex, uint32_t *id)
+// {
+//     uint8_t      tbufdata[5];
+//     /* Read selected SIDH buffer */
+//     readRegisters (instance, rxb->SIDH, tbufdata, 5u);
+ 
+//     *id = (tbufdata[MCP_SIDH] << 3u) + (tbufdata[MCP_SIDL] >> 5u);
+//     if(TXB_EXIDE_MASK == (tbufdata[MCP_SIDL] & TXB_EXIDE_MASK))
+//     {
+//         *id  = ((*id) << 2) + (tbufdata[MCP_SIDL] & 0b11 );
+//         *id  = ((*id) << 8) + (tbufdata[MCP_EID8]        );
+//         *id  = ((*id) << 8) + (tbufdata[MCP_EID0]        );
+//         *id |= CAN_EFF_FLAG;
+//     }
+// }
 
 MCP2515_Error MCP2515_readMessage_Buff(MCP2515_instance *instance, const RXBn rxbn, can_frame *frame)
 {

@@ -17,3 +17,21 @@ As per the datatype unification, it is possible to merge all signals into a sing
 The thing compiles for now, i'll leave the canif for a bit, and focus on the IPC. Creating coherent communication if trickier than anticipated, 
 as no low effort way is in sight for allowing uniform use of all data types through a single function. Only viable option at the moment,
 is to wrap signals and regular variables into function-like macros. 
+
+25.08.2024
+So, I somehow stabilized the CAN hw (breadboards are a bitch, i should solder whe controller wires directly or smt). 
+Current issue seems to be the CAN SM (finally). Apparently the tx buffer is not cleared, regardless if the message was sent; need to check that.
+Ok, so the SM issue was some weird shennanigans on the "transmit required" part of the SM. 
+
+06.09.2024
+First order of business, some can frame shenanigans.
+In order to enable the addition of new nodes to the network without recompiling the whole network, a mechanism for frame adaptation is needed.
+From outside, this process would look like this: user hooks up new nodes to network. new nodes broadcast their frames to the network, with connection requests. 
+Central node receives the requests and integrates the new node by giving it unique can frame ids, and the ids of the relevant associated nodes.
+To implement this mechanism, the frames have to be somehow centralized. The constant definition of this is questionable, as it could lead to memory waste.
+Another way is to implement a dbc configuration framework. This framework would have to include a way to generate the signal definitions for each node,
+as well as a set of configuration files allowing the node connections to be set up (either live by central node either during target binary genertation).
+
+06.10.2024
+Exactly one month later, we are back. To distance a bit from the CANIF structure, imma look a bit on the CAN SM side.
+A bit of care is given to the retry mechanism, by separating some of the functionality into helper functions.

@@ -41,6 +41,8 @@ typedef struct
 
     uint8_t     bitPosition;          // starting position of the signal inside the CAN frame
     uint8_t     bitSize;              // the length in bits of the signal data object
+    uint16_t    offset;
+    float       factor;
 
     void      (*updateCallback)();    // the function called when the signal data update is handled
 
@@ -48,7 +50,6 @@ typedef struct
     IpcContainer      dataRangeHigh;        // the upper limit of the valid data range
     void      (*invalidValueCallback)();
 
-    uint32_t    updateTime;           // the expected update time
     void      (*timeoutCallback)();   // the function called when the signal data does not update in the required time
 
     uint8_t     ownerFrameIndex;       // the index of the frame in the frame list
@@ -75,6 +76,7 @@ typedef struct {
     CanIf_Signal   *signals;
     uint8_t         signalNo;
     bool            frameUpdated;
+    bool            transmitRequired;
 
     uint16_t        updatePeriod_ms;
     uint8_t         updateRetries;

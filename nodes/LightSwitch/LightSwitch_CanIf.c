@@ -8,17 +8,15 @@ CanIf_Frame LightSwitch_CanIf_TxFrames[] = {
       .can_dlc = 8,
       .data[0] = LIGHTSWITCH_NODE_TYPE_ID
     },
-
     .frameUpdateCallback = NULL,
-
     .signals = NULL,
     .signalNo = 0u,
     .frameUpdated = false,
-
-    .updatePeriod_ms = 0,
+    .updatePeriod_ms = 0, //frame is sent once
     .updateRetries = 0u,
     .retriesLeft = 1
   },
+
   { /* Keep Alive frame */
     .canFrame = 
     {
@@ -26,18 +24,16 @@ CanIf_Frame LightSwitch_CanIf_TxFrames[] = {
       .can_dlc = 8,
       .data = {0}
     },
-
     .frameUpdateCallback = NULL,
-
     .signals = NULL,
     .signalNo = 0u,
     .frameUpdated = false,
-
     .updatePeriod_ms = 1000u,
     .updateRetries = 10u,
     .retriesLeft = 5
   }
 };
+
 
 CanIf_Frame LightSwitch_CanIf_RxFrames[] = {
   { /* Network confirmation frame */
@@ -47,18 +43,16 @@ CanIf_Frame LightSwitch_CanIf_RxFrames[] = {
       .can_dlc = 8,
       .data = {0}
     },
-
     .frameUpdateCallback = NULL,
-
     .signals = NULL,
     .signalNo = 0u,
     .frameUpdated = false,
-
     .updatePeriod_ms = 1000u,
     .updateRetries = 10u,
     .retriesLeft = 5
   }
 };
+
 
 CanIf_t LightSwitch_CanIf = 
 {

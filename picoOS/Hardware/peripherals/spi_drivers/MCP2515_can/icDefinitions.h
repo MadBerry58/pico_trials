@@ -322,10 +322,10 @@ typedef enum {
 } RX_STAT;
 
 typedef enum {
-    TX_TXB0 =  (1 << 2),
-    TX_TXB1 =  (1 << 4),
-    TX_TXB2 =  (1 << 6),
-    TX_TXANY = (TX_TXB0 | TX_TXB1 | TX_TXB2)
+    TX_TXB0     = (1 << 2),
+    TX_TXB1     = (1 << 4),
+    TX_TXB2     = (1 << 6),
+    TX_TXANY    = (TX_TXB0 | TX_TXB1 | TX_TXB2)
 } TX_STAT;
 
 #endif

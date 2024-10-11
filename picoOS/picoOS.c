@@ -8,8 +8,6 @@ Errors_OS_e (*OS_init_Routines[])(void) =
     init_Timers,        //timer functionality required for following components
 
     // init_Comms,         //connection to required for enabling network functionality
-    
-    init_OS_scheduler   //populate core event/task lists
 };
 
 /* Required functionality init */

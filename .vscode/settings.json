@@ -64,7 +64,10 @@
         "can_sm.h": "c",
         "picoos_types.h": "c",
         "lightswitch_canif.h": "c",
-        "irq.h": "c"
+        "irq.h": "c",
+        "lightcontroller_canif.h": "c",
+        "stdbool.h": "c",
+        "freertos.h": "c"
     },
     "cortex-debug.variableUseNaturalFormat": false,
     "cmake.configureOnOpen": true,

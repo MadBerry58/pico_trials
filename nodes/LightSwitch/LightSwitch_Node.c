@@ -26,8 +26,10 @@ int main()
     while(1)
     {
         run_Comms(&(LightSwitch_CanIf));
-        
+
+        LightSwitch_CanIf.txIfFrames[1].canFrame.data[0] ++;
         MCP2515_sendMessage     (&(LightSwitch_CanIf.canBusCfg), &(LightSwitch_CanIf.txIfFrames[1].canFrame));
-        sleep_ms(1000u);
+        LightSwitch_CanIf.txIfFrames[LIGHTSWITCH_TX_BROADCAST_FRAME_INDEX].canFrame.can_id = 0x11;
+        sleep_ms(3000u);
     }
 }
